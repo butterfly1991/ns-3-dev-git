@@ -1,0 +1,16 @@
+# -*- Mode: python; py-indent-offset: 4; indent-tabs-mode: nil; coding: utf-8; -*-
+
+def build(bld):
+    obj = bld.create_ns3_program('wave-multiple-channel', ['wave', 'wifi'])
+    obj.source = 'wave-multiple-channel.cc'
+
+    obj = bld.create_ns3_program('wave-simple-device', ['wave'])
+    obj.source = 'wave-simple-device.cc'
+    
+    obj = bld.create_ns3_program('wave-simple-vsa',
+        ['core', 'applications', 'tools', 'mobility', 'network', 'wifi','wave'])
+    obj.source = 'wave-simple-vsa.cc'
+
+    obj = bld.create_ns3_program('wave-simple-ocb',
+        ['core', 'applications', 'mobility', 'network', 'wifi','wave'])
+    obj.source = 'wave-simple-ocb.cc'

@@ -1,0 +1,55 @@
+# -*- Mode: python; py-indent-offset: 4; indent-tabs-mode: nil; coding: utf-8; -*-
+
+# def options(opt):
+#     pass
+
+# def configure(conf):
+#     conf.check_nonfatal(header_name='stdint.h', define_name='HAVE_STDINT_H')
+
+def build(bld):
+    module = bld.create_ns3_module('wave', ['core','wifi', 'propagation'])
+    module.source = [
+        'model/ocb-wifi-mac.cc',
+        'model/vendor-specific-action.cc',
+        'model/wave-net-device.cc',
+        'model/channel-coordinator.cc',
+        'model/channel-scheduler.cc',
+        'model/channel-manager.cc',
+        'model/vsa-repeater.cc',
+        'model/expire-time-tag.cc',
+        'model/higher-tx-tag.cc',
+        'model/wave-edca-txop-n.cc',
+        'helper/wave-mac-helper.cc',
+        'helper/wave-helper.cc',
+        'helper/wifi-80211p-helper.cc',
+        ]
+
+    module_test = bld.create_ns3_module_test_library('wave')
+    module_test.source = [
+        'test/wave-test-suite.cc',
+        'test/ocb-test-suite.cc',
+        ]
+
+    headers = bld(features='ns3header')
+    headers.module = 'wave'
+    headers.source = [
+        'model/ocb-wifi-mac.h',
+        'model/vendor-specific-action.h',
+        'model/wave-net-device.h',
+        'model/channel-coordinator.h',
+        'model/channel-manager.h',
+        'model/channel-scheduler.h',
+        'model/vsa-repeater.h',
+        'model/expire-time-tag.h',
+        'model/higher-tx-tag.h',
+        'model/wave-edca-txop-n.h',
+        'helper/wave-mac-helper.h',
+        'helper/wave-helper.h',
+        'helper/wifi-80211p-helper.h',
+        ]
+
+    if bld.env.ENABLE_EXAMPLES:
+        bld.recurse('examples')
+
+    # bld.ns3_python_bindings()
+
