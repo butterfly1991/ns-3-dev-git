@@ -411,6 +411,7 @@ public:
   Time GetPifs (void) const;
   Time GetRifs (void) const;
   Mac48Address GetBssid (void) const;
+  bool GetPromisc (void) const;
 
   /**
    * \param callback the callback which receives every incoming packet.
@@ -512,6 +513,8 @@ public:
    * associated to this AC.
    */
   void RegisterBlockAckListenerForAc (enum AcIndex ac, MacLowBlockAckEventListener *listener);
+protected:
+  virtual WifiTxVector GetDataTxVector (Ptr<const Packet> packet, const WifiMacHeader *hdr) const;
 private:
   void CancelAllEvents (void);
   uint32_t GetAckSize (void) const;
@@ -519,11 +522,9 @@ private:
   uint32_t GetRtsSize (void) const;
   uint32_t GetCtsSize (void) const;
   uint32_t GetSize (Ptr<const Packet> packet, const WifiMacHeader *hdr) const;
-  Time NowUs (void) const;
-void ForwardDown (Ptr<const Packet> packet, const WifiMacHeader *hdr,
+  void ForwardDown (Ptr<const Packet> packet, const WifiMacHeader *hdr,
                     WifiTxVector txVector, WifiPreamble preamble);
   WifiTxVector GetRtsTxVector (Ptr<const Packet> packet, const WifiMacHeader *hdr) const;
-  WifiTxVector GetDataTxVector (Ptr<const Packet> packet, const WifiMacHeader *hdr) const;
   WifiTxVector GetCtsTxVector (Mac48Address to, WifiMode rtsTxMode) const;
   WifiTxVector GetAckTxVector (Mac48Address to, WifiMode dataTxMode) const;
   WifiTxVector GetBlockAckTxVector (Mac48Address to, WifiMode dataTxMode) const;
@@ -552,7 +553,6 @@ void ForwardDown (Ptr<const Packet> packet, const WifiMacHeader *hdr,
   void NotifyAckTimeoutResetNow ();
   void NotifyCtsTimeoutStartNow (Time duration);
   void NotifyCtsTimeoutResetNow ();
-  void MaybeCancelPrevious (void);
 
   void NavCounterResetCtsMissed (Time rtsEndRxTime);
   void NormalAckTimeout (void);
@@ -570,7 +570,6 @@ void ForwardDown (Ptr<const Packet> packet, const WifiMacHeader *hdr,
 
   void SendRtsForPacket (void);
   void SendDataPacket (void);
-  void SendCurrentTxPacket (void);
   void StartDataTxTimers (WifiTxVector dataTxVector);
   virtual void DoDispose (void);
   /**

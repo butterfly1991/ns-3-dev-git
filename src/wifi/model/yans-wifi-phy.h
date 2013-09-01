@@ -245,8 +245,6 @@ private:
   void Configure80211_10Mhz (void);
   void Configure80211_5Mhz ();
   void ConfigureHolland (void);
-  void Configure80211p_CCH (void);
-  void Configure80211p_SCH (void);
   void Configure80211n (void);
   double GetEdThresholdW (void) const;
   double DbmToW (double dbm) const;

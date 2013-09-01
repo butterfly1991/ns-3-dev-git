@@ -294,6 +294,10 @@ void
 DcfManager::SetupLowListener (Ptr<MacLow> low)
 {
   NS_LOG_FUNCTION (this << low);
+  if (m_lowListener != 0)
+    {
+     delete m_lowListener;
+    }
   m_lowListener = new LowDcfListener (this);
   low->RegisterDcfListener (m_lowListener);
 }

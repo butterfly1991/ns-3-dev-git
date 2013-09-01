@@ -44,6 +44,8 @@ class DcfManager;
 class MacLow;
 class MacTxMiddle;
 class WifiMac;
+class MacLowTransmissionParameters;
+class MacLowTransmissionListener;
 class WifiMacParameters;
 class WifiMacQueue;
 class RandomStream;
@@ -61,7 +63,8 @@ enum TypeOfStation
   MESH,
   HT_STA,
   HT_AP,
-  HT_ADHOC_STA
+  HT_ADHOC_STA,
+  OCB
 };
 
 
@@ -86,7 +89,6 @@ public:
   static TypeId GetTypeId (void);
   EdcaTxopN ();
   virtual ~EdcaTxopN ();
-  void DoDispose ();
 
   void SetLow (Ptr<MacLow> low);
   void SetTxMiddle (MacTxMiddle *txMiddle);
@@ -116,7 +118,7 @@ public:
   /**
   * When a channel switching occurs, enqueued packets are removed.
   */
-  void NotifyChannelSwitching (void);
+  virtual void NotifyChannelSwitching (void);
 
   /*event handlers*/
   void GotCts (double snr, WifiMode txMode);
@@ -145,27 +147,40 @@ public:
   Ptr<Packet> GetFragmentPacket (WifiMacHeader *hdr);
 
   void SetAccessCategory (enum AcIndex ac);
-  void Queue (Ptr<const Packet> packet, const WifiMacHeader &hdr);
+  virtual void Queue (Ptr<const Packet> packet, const WifiMacHeader &hdr);
   void SetMsduAggregator (Ptr<MsduAggregator> aggr);
   void PushFront (Ptr<const Packet> packet, const WifiMacHeader &hdr);
-  void CompleteConfig (void);
   void SetBlockAckThreshold (uint8_t threshold);
   uint8_t GetBlockAckThreshold (void) const;
   void SetBlockAckInactivityTimeout (uint16_t timeout);
   void SendDelbaFrame (Mac48Address addr, uint8_t tid, bool byOriginator);
-
- /**
-  * Assign a fixed random variable stream number to the random variables
-  * used by this model.  Return the number of streams (possibly zero) that
-  * have been assigned.
-  *
-  * \param stream first stream index to use
-  * \return the number of stream indices assigned by this model
-  */
+  /**
+   * Assign a fixed random variable stream number to the random variables
+   * used by this model.  Return the number of streams (possibly zero) that
+   * have been assigned.
+   *
+   * \param stream first stream index to use
+   * \return the number of stream indices assigned by this model
+   */
   int64_t AssignStreams (int64_t stream);
 
+protected:
+  virtual void DoInitialize ();
+  virtual void DoDispose ();
+  virtual void StartTransmission (Ptr<const Packet> packet,
+                                  const WifiMacHeader* hdr,
+                                  MacLowTransmissionParameters params,
+                                  MacLowTransmissionListener *listener);
+  Ptr<WifiMacQueue> m_queue;
+  /* current packet could be a simple MSDU or, if an aggregator for this queue is
+     present, could be an A-MSDU.
+   */
+  Ptr<const Packet> m_currentPacket;
+  WifiMacHeader m_currentHdr;
+  BlockAckManager *m_baManager;
+  Ptr<WifiRemoteStationManager> m_stationManager;
+
 private:
-  void DoInitialize ();
   /**
    * This functions are used only to correctly set addresses in a-msdu subframe.
    * If aggregating sta is a STA (in an infrastructured network):
@@ -210,7 +225,6 @@ private:
   friend class TransmissionListener;
   Dcf *m_dcf;
   DcfManager *m_manager;
-  Ptr<WifiMacQueue> m_queue;
   TxOk m_txOkCallback;
   TxFailed m_txFailedCallback;
   Ptr<MacLow> m_low;
@@ -218,19 +232,11 @@ private:
   TransmissionListener *m_transmissionListener;
   BlockAckEventListener *m_blockAckListener;
   RandomStream *m_rng;
-  Ptr<WifiRemoteStationManager> m_stationManager;
   uint8_t m_fragmentNumber;
 
-  /* current packet could be a simple MSDU or, if an aggregator for this queue is
-     present, could be an A-MSDU.
-   */
-  Ptr<const Packet> m_currentPacket;
-
-  WifiMacHeader m_currentHdr;
   Ptr<MsduAggregator> m_aggregator;
   TypeOfStation m_typeOfStation;
   QosBlockedDestinations *m_qosBlockedDestinations;
-  BlockAckManager *m_baManager;
   /*
    * Represents the minimum number of packets for use of block ack.
    */

@@ -74,10 +74,13 @@ class EdcaTxopN::TransmissionListener : public MacLowTransmissionListener
 public:
   TransmissionListener (EdcaTxopN * txop)
     : MacLowTransmissionListener (),
-      m_txop (txop) {
+      m_txop (txop)
+  {
   }
 
-  virtual ~TransmissionListener () {}
+  virtual ~TransmissionListener ()
+  {
+  }
 
   virtual void GotCts (double snr, WifiMode txMode)
   {
@@ -125,9 +128,12 @@ class EdcaTxopN::BlockAckEventListener : public MacLowBlockAckEventListener
 public:
   BlockAckEventListener (EdcaTxopN * txop)
     : MacLowBlockAckEventListener (),
-      m_txop (txop) {
+      m_txop (txop)
+  {
   }
-  virtual ~BlockAckEventListener () {}
+  virtual ~BlockAckEventListener ()
+  {
+  }
 
   virtual void BlockAckInactivityTimeout (Mac48Address address, uint8_t tid)
   {
@@ -168,8 +174,8 @@ EdcaTxopN::GetTypeId (void)
 }
 
 EdcaTxopN::EdcaTxopN ()
-  : m_manager (0),
-    m_currentPacket (0),
+  : m_currentPacket (0),
+    m_manager (0),
     m_aggregator (0),
     m_blockAckType (COMPRESSED_BLOCK_ACK)
 {
@@ -221,7 +227,6 @@ EdcaTxopN::SetManager (DcfManager *manager)
 {
   NS_LOG_FUNCTION (this << manager);
   m_manager = manager;
-  m_manager->Add (m_dcf);
 }
 
 void
@@ -392,10 +397,10 @@ EdcaTxopN::NotifyAccessGranted (void)
       params.DisableRts ();
       params.DisableAck ();
       params.DisableNextData ();
-      m_low->StartTransmission (m_currentPacket,
-                                &m_currentHdr,
-                                params,
-                                m_transmissionListener);
+      StartTransmission (m_currentPacket,
+                         &m_currentHdr,
+                         params,
+                         m_transmissionListener);
 
       NS_LOG_DEBUG ("tx broadcast");
     }
@@ -415,7 +420,7 @@ EdcaTxopN::NotifyAccessGranted (void)
         }
       if (NeedFragmentation () && ((m_currentHdr.IsQosData ()
                                     && !m_currentHdr.IsQosAmsdu ())
-                                   || 
+                                   ||
                                    (m_currentHdr.IsData ()
                                     && !m_currentHdr.IsQosData () && m_currentHdr.IsQosAmsdu ()))
           && (m_blockAckThreshold == 0
@@ -435,8 +440,8 @@ EdcaTxopN::NotifyAccessGranted (void)
               NS_LOG_DEBUG ("fragmenting size=" << fragment->GetSize ());
               params.EnableNextData (GetNextFragmentSize ());
             }
-          m_low->StartTransmission (fragment, &hdr, params,
-                                    m_transmissionListener);
+          StartTransmission (fragment, &hdr, params,
+                             m_transmissionListener);
         }
       else
         {
@@ -494,8 +499,8 @@ EdcaTxopN::NotifyAccessGranted (void)
               NS_LOG_DEBUG ("tx unicast");
             }
           params.DisableNextData ();
-          m_low->StartTransmission (m_currentPacket, &m_currentHdr,
-                                    params, m_transmissionListener);
+          StartTransmission (m_currentPacket, &m_currentHdr,
+                             params, m_transmissionListener);
           CompleteTx ();
         }
     }
@@ -736,7 +741,7 @@ EdcaTxopN::StartNext (void)
     {
       params.EnableNextData (GetNextFragmentSize ());
     }
-  Low ()->StartTransmission (fragment, &hdr, params, m_transmissionListener);
+  StartTransmission (fragment, &hdr, params, m_transmissionListener);
 }
 
 void
@@ -1012,16 +1017,7 @@ EdcaTxopN::SendBlockAckRequest (const struct Bar &bar)
       //Delayed block ack
       params.EnableAck ();
     }
-  m_low->StartTransmission (m_currentPacket, &m_currentHdr, params, m_transmissionListener);
-}
-
-void
-EdcaTxopN::CompleteConfig (void)
-{
-  NS_LOG_FUNCTION (this);
-  m_baManager->SetTxMiddle (m_txMiddle);
-  m_low->RegisterBlockAckListenerForAc (m_ac, m_blockAckListener);
-  m_baManager->SetBlockAckInactivityCallback (MakeCallback (&EdcaTxopN::SendDelbaFrame, this));
+  StartTransmission (m_currentPacket, &m_currentHdr, params, m_transmissionListener);
 }
 
 void
@@ -1105,8 +1101,8 @@ EdcaTxopN::SendAddBaRequest (Mac48Address dest, uint8_t tid, uint16_t startSeq,
   params.DisableNextData ();
   params.DisableOverrideDurationId ();
 
-  m_low->StartTransmission (m_currentPacket, &m_currentHdr, params,
-                            m_transmissionListener);
+  StartTransmission (m_currentPacket, &m_currentHdr, params,
+                     m_transmissionListener);
 }
 
 void
@@ -1144,6 +1140,15 @@ EdcaTxopN::SendDelbaFrame (Mac48Address addr, uint8_t tid, bool byOriginator)
   PushFront (packet, hdr);
 }
 
+void
+EdcaTxopN::StartTransmission (Ptr<const Packet> packet,
+                              const WifiMacHeader* hdr,
+                              MacLowTransmissionParameters params,
+                              MacLowTransmissionListener *listener)
+{
+  m_low->StartTransmission (packet, hdr, params, listener);
+}
+
 int64_t
 EdcaTxopN::AssignStreams (int64_t stream)
 {
@@ -1156,8 +1161,12 @@ void
 EdcaTxopN::DoInitialize ()
 {
   NS_LOG_FUNCTION (this);
+  m_manager->Add (m_dcf);
   m_dcf->ResetCw ();
   m_dcf->StartBackoffNow (m_rng->GetNext (0, m_dcf->GetCw ()));
   ns3::Dcf::DoInitialize ();
+  m_low->RegisterBlockAckListenerForAc (m_ac, m_blockAckListener);
+  m_baManager->SetTxMiddle (m_txMiddle);
+  m_baManager->SetBlockAckInactivityCallback (MakeCallback (&EdcaTxopN::SendDelbaFrame, this));
 }
 } // namespace ns3
