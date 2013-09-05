@@ -215,7 +215,7 @@ private:
 };
 
 MultipleChannelExperiment::MultipleChannelExperiment ()
-  : nodesNumber (10),
+  : nodesNumber (20),
     frequencySafety (10),
     // 10Hz, 100ms send one safety packet
     frequencyNonSafety (10),
@@ -253,6 +253,7 @@ void
 MultipleChannelExperiment::Usage (void)
 {
   std::cout << "usage:"
+		    << "./waf --run=\"wave-multiple-channel --intArg=2 --verbose \""
             << std::endl;
 }
 
@@ -346,7 +347,7 @@ MultipleChannelExperiment::Receive (Ptr<NetDevice> dev, Ptr<const Packet> pkt, u
       timeNonSafety += (now - sendTime).GetMicroSeconds ();
     }
 
-  outfile << "Time = " << std::dec << now.GetMicroSeconds () << " , receive packet: "
+  outfile << "Time = " << std::dec << now.GetMicroSeconds () << "us, receive packet: "
           << " protocol = 0x" << std::hex << mode << std::dec
           << " id = " << packetId << " sendTime = " << sendTime.GetMicroSeconds ()
           << " type = " << (mode == WSMP_PROT_NUMBER ? "SafetyPacket" : "NonSafetyPacket")

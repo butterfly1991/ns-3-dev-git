@@ -41,104 +41,36 @@ to use the 5.9 GHz band with a channel bandwidth of 10 MHz.  These physical
 layer changes can make the wireless signal relatively more stable,
 without degrading throughput too much (ranging from 3 Mbps to 27 Mbps), 
 although 20 MHz channel bandwidth is still supported.
-The class ``ns3::WaveNetDevice`` models a set of extensions,found in 
-IEEE Std 1609.4-2010 [ieee1609.4]_.
+As declared in IEEE Std 1609.4-2010 [ieee1609.4]_: "WAVE devices must support 
+a control channel with multiple service channels.To operate over multiple wireless 
+channels while in operation with OCBEnabled, there is a need to perform channel coordination."
+The class ``ns3::WaveNetDevice`` models a set of extensions of 802.11p MAC layer, 
+not including data plane, but also management plane features. The data plane includes 
+Channel coordination, Channel routing and User priority; and the management plane 
+includes Multi-channel synchronization, Channel access, Vendor Specific Action frames 
+and Readdressing.
+
 The source code for the WAVE MAC models lives in the directory
 ``src/wave``.
 
-About 802.11p
-=============
-When ``dot11OCBEnabled`` is true, a data frame can be sent to either an 
-individual or a group destination MAC address.
-This type of communication is only possible between STAs that are able to 
-communicate directly over the wireless medium. 
-It allows immediate communication, avoiding the latency associated with 
-establishing a BSS.
-When ``dot11OCBEnabled`` is true, a STA is not a member of a BSS 
-and it does not utilize the IEEE 802.11 authentication, association, or 
-data confidentiality services. 
-This capability is particularly well-suited for use in rapidly varying 
-communication environments 
-such as those involving mobile STAs where the interval over 
-which the communication exchanges take place may be of very short-duration 
-(e.g., on the order of tens or hundreds of milliseconds).
-Communication of data frames when ``dot11OCBEnabled`` is true might take 
-place in a frequency band
-that is dedicated for its use, and such a band might require licensing 
-depending on the regulatory domain.
-A STA for which ``dot11OCBEnabled`` is true initially transmits and 
-receives on a channel known in advance, 
-either through regulatory designation or some other out-of-band communication. 
-A STA’s SME determines PHY layer parameters, as well as any changes in 
-the operating channel. The Vendor Specific Action frame provides one 
-means for STAs 
-to exchange management information prior to communicating data frames 
-outside the context of a BSS. 
-When ``dot11OCBEnabled`` is true, a sending STA sets the BSSID field to 
-the wildcard BSSID value
-
-About 1609.4
-============
-
-WAVE devices must support a control channel with multiple service
-channels.
-To operate over multiple wireless channels while in operation with
-OCBEnabled, there is a need to perform channel coordination.
-Both data plane and management plane features are specified.
-
-Data plane
-##########
-
-* Channel coordination
-  The MAC sublayer coordinates channel intervals so that data packets 
-  are transmitted on the proper RF channel at the right time.
-
-* Channel routing
-  The MAC sublayer handles inbound and outbound higher layer data.
-  This specification includes routing of data packets from the LLC to 
-  the designated channel, and setting parameters (e.g.,
-  transmit power) for WAVE transmissions.
-
-* User priority
-  WAVE supports a variety of safety and nonsafety applications with 
-  up to eight levels of priority as defined in IEEE Std 802.11. The
-  use of user priority (UP) and related access category (AC)
-  supports quality of service using enhanced distributed channel 
-  access (EDCA) functionality specified in IEEE Std 802.11.
-
-Management plane
-################
-
-* Multi-channel synchronization
-  The MLME uses information derived locally and received over the air
-  to provide a synchronization function with the objective of aligning
-  channel intervals among communicating WAVE devices. The MLME provides
-  the capability to generate Timing Advertisement (TA) frames to
-  distribute system timing information and monitor received TA frames.
-
-* Channel access
-  The MLME controls the access to specific radio channels in support
-  of communication requests received from the WME.
-
-* Vendor Specific Action frames
-  The MLME will accept incoming VSA frames and pass them to the WAVE Manage
-
-* Readdressing
-  The MLME allows device address changes to be triggered in 
-  support of pseudonymity.
 
 Design
 ======
 
-In |ns3|, support for 802.11p involves the MAC and PHY layers.  
+In |ns3|, support for 802.11p involves the MAC and PHY layers.
+To use a 802.11p netdevice, Wifi80211pHelper is suggested.
 
-a) MAC layer: The interesting thing is that |ns3| AdhocWifiMac class is 
-implemented 
-very close to 802.11p OCB mode rather than real 802.11 ad-hoc mode.
-The AdhocWifiMac has no BSS context that is defined in 802.11 standard, 
-so it will not take time to send beacon and authenticate, which 
-I think is not implemented perfectly. 
-So OcbWifiMac is very similar to AdhocWifiMac, with some modifications. 
+MAC layer
+#########
+Here are OrganizationIdentifier, VendorSpecificActionHeader, HigherDataTxVectorTag,
+WaveMacLow and OcbWifiMac.
+The OrganizationIdentifier and VendorSpecificActionHeader are used to support 
+send Vendor Specific Action frame. The HigherDataTxVectorTag and WaveMacLow are 
+used to support higher control tx parameters. These classes are all used in OcbWifiMac.
+OcbWifiMac is very similar to AdhocWifiMac, with some modifications. 
+(|ns3| AdhocWifiMac class is implemented very close to 802.11p OCB mode rather than 
+real 802.11 ad-hoc mode. The AdhocWifiMac has no BSS context that is defined in 802.11 
+standard, so it will not take time to send beacon and authenticate.)
 1. SetBssid, GetBssid, SetSsid, GetSsid
 these methods are related to 802.11 BSS context which is unused in OCB context.
 2. SetLinkUpCallback, SetLinkDownCallback
@@ -170,38 +102,37 @@ to allow higher layer of other stations can hear directly.
 The most important methods are send and receive methods. According to the 
 standard, we should filter frames that are not permitted. However here we 
 just idetify the frames we care about, the other frames will be disgard.
+8. NotifyBusy and SetWaveEdcaQueue
+These methods are private, and can only be used by friend class ChannelSceduler
+to provide some special features of MAC layer required by 1609.4 standard.
 
-b) phy layer: the original WifiPhyStandard contains 
-WIFI_PHY_STANDARD_80211p_SCH and WIFI_PHY_STANDARD_80211p_CCH.
-In the standard, the PHY 
-layer wireless technology is still 80211a OFDM with 10MHz, so we just 
-need WIFI_PHY_STANDARD_80211_10MHZ
+PHY layer
+#########
+Actually, no modification or extension happen in ns3 PHY layer.
+In the 802.11p standard, the PHY layer wireless technology is still 80211a OFDM with 10MHz,
+so Wifi80211pHelper will only allow user set the standard WIFI_PHY_STANDARD_80211_10MHZ
 (WIFI_PHY_STANDARD_80211a with 20MHz is supported, but not recommended.)
-Another difference is transmit power. Normally the maximum station transmit power 
-and maximum permited EIRP defined in 802.11p is larger than wifi, so transmit
-range can get longer than usual wifi. But power will not be set automatically. Users 
-who want to get longer range should configure atrributes "TxPowerStart", 
-"TxPowerEnd" and "TxPowerLevels" of YansWifiPhy class by themself which means
-tx power control mechanism will not be implemented.
+The maximum station transmit power and maximum permited EIRP defined in 802.11p is larger 
+than wifi, so transmit range can normally become longer than usual wifi. But this feature will 
+not be implemented. Users who want to get longer range should configure atrributes "TxPowerStart", 
+"TxPowerEnd" and "TxPowerLevels" of YansWifiPhy class by themself.
 
-In |ns3|, support for 1609.4 involves the MAC extension layers.  
-The implemention approach follows that found in the |ns3| mesh module, which
-will define a new WaveNetDevice that controls multiple MAC entities and one 
-PHY entity instead of doing modification in source code of wifi module.
-Note: we try best to not add code directly into wifi code, but this cannot 
-avoid. WaveNetDevice is composed of ChannelScheduler, ChannelManager,  
-ChannelCoordinator and VsaRepeater classess to assign the channel access resource 
-of multiple channels.
-1. SetChannelManager, SetChannelScheduler, SetChannelCoordinator
+In |ns3|, support for 1609.4 involves the MAC extension layers.
+To use a WAVE netdevice, WaveHelper is suggested.
+MAC extension
+#############
+Although 1609.4 is still in MAC layer, the implemention approach here will 
+not do modification directly in source code of wifi module. Instead, if some 
+feature is related to wifi MAC classes, then a relevant subclass and new tag will 
+be defined; if some features has no relation with wifi MAC classess, then  
+new class will be defined. And all these classes will work and called by WaveNetDevice.
+WaveNetDevice is a subclass inherting from WifiNetDeivce, composed of the objects of 
+ChannelScheduler, ChannelManager, ChannelCoordinator and VsaRepeater classess 
+to provide the features of 1609.4. The main work of WaveNetDevice is to create objects, 
+configure, check arguments and provide new methods for multiple channel operation.
+1. SetChannelManager, SetChannelScheduler, SetChannelCoordinator.
 These methods are used when users want to use customized channel operations or 
 want to debug state information of internal classes.
-2. AddMac, SetPhy, SetRemoteStationManager
-Different from WifiNetDevice, WaveNetDevice need more than one MAC entity to 
-deal with channel switch. Although the 1609.4 standard also supports multiple 
-PHY entities, the WaveNetDevice do not support that which now only condsiders the 
-context of single-PHY. And RemoteStationManager maybe could not work well as 
-in single channel environment. So we suggest users should consider whether the 
-selected RemoteStationManager can suffer from multiple channel environment.
 3. StartSch and StopSch
 Different from 802.11p device can sent packets after constructing, a wave device 
 should request to assign channel access for sending packets. The methods will use 
@@ -217,13 +148,69 @@ register a tx profile to specify tx parameter then all packets sent by Send meth
 will use the same channel number. If the adapate parameter is false, data rate and 
 tx power level will be same for sending, otherwise data rate and tx power level will 
 be set automatically by RemoteStationManager.
-6. Send
+6. Send, 
 Only access is assigned and tx profile is registered, we can send IP-based packets 
 or other packets. And no matter data packets is sent by Send method or SendX method, 
 the received data packets will forward up to higher layer by setted ReceiveCallback.
-7. StartVsa and StopVsa
+7. StartVsa, StopVsa and SetVsaReceiveCallback
 VSA frames is useful for 1609.3 to send WSA managemnt information. By StartVsa method 
 we can specify transmit parameters.
+
+Channel Coordination
+####################
+ns3::ChannelCoodrdiator defines CCH Interval, SCH Interval and GuardInteval. Users can 
+use this class to get which interval is now or after duration. If current channel access 
+is alternating, channel interval event will be notified repeatedly. Current default 
+parameter is CCHI with 50ms, SCHI with 50ms, and GuardI with 4ms. Users can change these 
+value by controlling attributes. 
+
+Channel routing
+###############
+Channel routind indicated different transmission apporach for WSMP data, IP datagrams and management data.
+For WSMP data, WaveNetDevice::SendX method implements the service primitive MA-UNITDATAX, and users can 
+set transmission parameter for each individual packet. The parameter here includes channel number, priority,
+data rate, tx power level and expire time. 
+For IP datagrams, WaveNetDevice::Send method is virtual method from WifiNetDevice::Send, so users should add 
+qos tag into packets by themselves if they want use qos. And an important point is they should register a tx 
+profile which contains SCH number, data rate, power level and adaptable status before Send method is called. 
+For management frames, users can use StartVsa to send VSA frames, and the tx information is already configured 
+in ns3::ChannelManager which contains data rate, power level and adaptable status.
+To queue a packet under multiple channel environment, ns3::WaveEdcaTxopN is defined to inhert from EdcaTxopN to 
+change internal single mac queue to multiple mac queue. When a packet is sent to MAC layer, first decide which AC 
+is by ns3::QosTag, then get EdcaTxopN object(actually is WaveEdcaTxopN object) by AC value, then this WaveEdcaTxopN 
+decides which internal queue is by ns3::ChannelTag, at last the packet will be queued to the proper queue.
+
+
+User priority and Multi-channel synchronization
+###############################################
+Since wifi module is already implemented qos mechanism, wave module will do nothing except that VSA frames 
+will be assigned the highest AC according to the standard. The feature that allows higher layer set new EDCA 
+parameters for SCH is not implemented.
+Multipl-channel synchronization is indeed very important in practice for devices without local timing source. 
+However in simulation every node is supposed to have the same system clock which could be achieved by GPS in 
+real environment, so this feature will not be implemented. During the guard interval, the device state will 
+be neither receive nor send even real channel switch duration of PHY layer is smaller than 1ms.
+A important point is the channel access should be assigned before routing packets. WaveNetDevice will check 
+channel state by ns3::ChannelManager to make sure channel access status.
+
+Channel access
+##############
+The channel access assignment is done by ns3::ChannelScheduler to assign ChannelContinuousAccess, ExtendedAccess 
+and AlternatingAccess. Besides that, immediate access is achieved by enable or disbale "immediate" value. If 
+immediate enabled, channel access will switch channel immediately, then assign relevant channel access. The 
+channel access here is in the context of single-phy device. So if channel access is already assigned for other 
+request, current request will fail until different channel access is released.
+To support alternating access switch channel at the guard interval, ns3::WaveEdcaTxopN will not do the action of 
+flushing queue, instead, the class will only switch current channel queue to another channel queue and a MAC busy 
+event will be notified to suspend MAC activities. When releasing the alternating access, the real queue flush action 
+will be done at this moment. 
+The StartSch method and StopSch method are actually implementd by calling ns3::ChannelScheduler.
+
+Vendor Specific Action frames
+#############################
+When users want to send VSA repeatedlt by calling WaveNetDevice::StartVsa, VSA will be send repeatedly by 
+ns3::VsaRepeater. An point is that if peer mac address is a unicast address, the VSA inorges repeat request and 
+send only once. The tx parameters are configured in ns3::ChannelManager.
 
 Scope and Limitations
 =====================
@@ -265,7 +252,7 @@ code, a simple application model will be tried to develop.
 
 This project will provide two NetDevices. 
 
-First is normal 802.11p netdevice which uses new implemented OcbWifiMac. 
+First is normal 802.11p netdevice of WifiNetDevice which uses new implemented OcbWifiMac. 
 This is very useful 
 for those people who only want to simulate routing protocols or upper layer
 protocols for vehicular 
@@ -275,23 +262,13 @@ little modification
 on previous code or just use ad-hoc mode with 802.11a 10MHz (this is enough 
 to simulate the main characteristic of 802.11p). 
 
-The second NetDevices is a 1609.4 netdevice which provides some methods 
+The second NetDevices is a 1609.4 netdevice of WaveNetDevice which provides some methods 
 to deal with multi-channel operation. This is part of the whole WAVE 
 architecture and provides service for upper 1609.3 standards, which could 
 leverage no previous codes. 
 
 5 Why here are two kinds of NetDevice?
-
-In wave module, actually here are two device, one is 802.11p device which 
-is the object of WifiNetDevice class, another is wave device which is 
-the object of WaveNetDevice class. An "802.11p Net Device" is one that 
-just runs the 802.11p extensions (channel frequency = 802.11a 5.9GHz, 
-channel width = 10MHz, single instance of OcbWifiMac, and specific EDCA 
-parameters). A "WAVE Net Device" is one that implements also 1609.1-4 
-standards based on 802.11p, and now we are focusing only on 1609.4 modeling 
-aspects (multi channel). 
-
-The reason to provide a 802.11p device is that considering the fact many 
+The reason to provide a special 802.11p device is that considering the fact many 
 researchers are interested in route protocol or other aspects on vehicular 
 environment of single channel, so they need neither multi-channel operation 
 nor WAVE architectures. Besides that, the European standard could use 802.11p 
@@ -318,8 +295,8 @@ Usage
 
 Helpers
 =======
-The helpers include WaveMacHelper, NqosWaveMacHelper, QosWaveMacHelper, 
-Wifi80211pHelper and WaveHelper. Wifi80211pHelper is used to create 
+The helpers include ns3::NqosWaveMacHelper, ns3::QosWaveMacHelper, 
+ns3::Wifi80211pHelper and ns3::WaveHelper. Wifi80211pHelper is used to create 
 802.11p devices that follow the 802.11p-2010 standard. WaveHelper is 
 used to create WAVE devices that follow the 802.11p-2010 and 1609.4-2010 
 standards which are the MAC and PHY layers of the WAVE architecture. 
@@ -339,16 +316,17 @@ The relation of them is described as below:
 WaveHelper Wifi80211pHelper     QosWaveMacHelper  NqosWaveHelper
 
 Although Wifi80211Helper can use any subclasses inheriting from 
-WifiMacHelper, we force user shall use subclasses inheriting from 
+WifiMacHelper, we force user to use subclasses inheriting from 
 QosWaveMacHelper or NqosWaveHelper.
 Although WaveHelper can use any subclasses inheriting from WifiMacHelper, 
-we force user shall use subclasses inheriting from QosWaveMacHelper. 
+we force user to use subclasses inheriting from QosWaveMacHelper. 
 NqosWaveHelper is also not permitted, because 1609.4 standard requires the 
 support for priority. 
 
 Users can use Wifi80211pHelper to create "real" wifi 802.11p device.
 Although the functions of wifi 802.11p device can be achieved by WaveNetDevice's 
-ContinuousAccess assignment, we suggest to use Wifi80211pHelper.
+ContinuousAccess assignment, Wifi80211pHelper ia more recommened if there is no 
+need for multiple channel operation.
 Usage as follows:
 
 ::
@@ -362,10 +340,11 @@ Usage as follows:
     Wifi80211pHelper 80211pHelper = Wifi80211pHelper::Default ();
     devices = 80211pHelper.Install (wifiPhy, wifi80211pMac, nodes);
 
-Users can use wave-helper to create wave devices to deal with multiple
+Users can use WaveHelper to create wave devices to deal with multiple
 channel operations. The devices are WaveNetDevice objects. It's useful 
 when users want to research on multi-channel environment or use WAVE 
-architecture.usage as follows:
+architecture.
+Usage as follows:
 
 ::
     NodeContainer nodes;
@@ -379,11 +358,12 @@ architecture.usage as follows:
     devices = waveHelper.Install (wifiPhy, waveMac, nodes);
 APIs
 ====
+
 The 802.11p device can allow the upper layer to send different information
 over Vendor Specific Action management frames by using different
 OrganizationIdentifier fields to identify differences.
 
-1. already define a Node object and WifiNetdevice object
+1. already create a Node object and WifiNetdevice object
 2. define an OrganizationIdentifier
 
 ::

@@ -31,15 +31,13 @@
 
 using namespace ns3;
 /**
- * How to send WSMP packets or and IP packets
+ * How to send WSMP packets or and IP packets:
  * first have a WaveNetDevice;
- * then assign channel access for sending packets
- * (IP packets should not request CCH channel);
- * Now you can send WSMP packets with SendX method.
- * However before sending IP packets, you should register
- * TxProfile to tell which channel will be used and other
- * information, then you can send IP packets with Send
- * method
+ * then assign channel access for sending packet (IP packets should not
+ * request CCH channel); Now you can send WSMP packets with SendX method.
+ * However before sending IP packets, you should still register a TxProfile
+ * to tell which channel will be used and other information,
+ * then you can send IP packets with Send method
  */
 class WaveNetDeviceExample
 {

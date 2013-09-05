@@ -44,14 +44,11 @@ NS_LOG_COMPONENT_DEFINE ("WifiSimpleOcb");
 
 using namespace ns3;
 /*
- *  How to use OcbWifiMac ?
- *  we defined some wifi-like helpers:
- *  NqosWave80211pMacHelper,
- *  QosWave80211pMacHelper,
- *  Wifi80211pHelper,
- *  WaveHelper.
+ * In WAVE module, here is no net device class named like "Wifi80211p",
+ * instead, we need to use Wifi80211pHelper to create an object of
+ * WifiNetDevice class.
  *
- *  so write codes like WifiHelper
+ * usage:
  *  NodeContainer nodes;
  *  NetDeviceContainer devices;
  *  nodes.Create (2);
@@ -62,6 +59,9 @@ using namespace ns3;
  *  Wifi80211pHelper wifi80211p = Wifi80211pHelper::Default ();
  *  devices = wifi80211p.Install (wifiPhy, wifi80211pMac, nodes);
  *
+ * The reason of not providing a 802.11p class is that most of modeling
+ * 802.11p standard has been done in wifi module, so we only need a high
+ * MAC class that enables OCB mode.
  */
 
 void ReceivePacket (Ptr<Socket> socket)
