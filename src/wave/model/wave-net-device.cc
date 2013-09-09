@@ -186,6 +186,17 @@ WaveNetDevice::StartSch (const SchInfo & schInfo)
     {
       return false;
     }
+
+  for (EdcaParameterSetI i = schInfo.edcaParameterSet.begin ();
+		  i != schInfo.edcaParameterSet.end (); ++i)
+    {
+	  Ptr<WifiMac> mac = WifiNetDevice::GetMac ();
+      Ptr<OcbWifiMac> ocbMac = DynamicCast<OcbWifiMac>(mac);
+      NS_ASSERT (ocbMac != 0);
+      EdcaParameter edca = i->second;
+      ocbMac->ConfigureEdca (edca.cwmin, edca.cwmax, edca.aifsn, i->first);
+    }
+
   uint32_t cn = schInfo.channelNumber;
   uint32_t extends = schInfo.extendedAccess;
   // now only support channel continuous access and extended access

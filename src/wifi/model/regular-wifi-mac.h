@@ -247,6 +247,18 @@ protected:
   channel access function */
   EdcaQueues m_edca;
 
+  /** Accessor for the DCF object */
+  Ptr<DcaTxop> GetDcaTxop (void) const;
+
+  /** Accessor for the AC_VO channel access function */
+  Ptr<EdcaTxopN> GetVOQueue (void) const;
+  /** Accessor for the AC_VI channel access function */
+  Ptr<EdcaTxopN> GetVIQueue (void) const;
+  /** Accessor for the AC_BE channel access function */
+  Ptr<EdcaTxopN> GetBEQueue (void) const;
+  /** Accessor for the AC_BK channel access function */
+  Ptr<EdcaTxopN> GetBKQueue (void) const;
+
   /**
    * \param standard the phy standard to be used
    *
@@ -361,17 +373,7 @@ private:
    */
   void SetupEdcaQueue (enum AcIndex ac);
 
-  /** Accessor for the DCF object */
-  Ptr<DcaTxop> GetDcaTxop (void) const;
 
-  /** Accessor for the AC_VO channel access function */
-  Ptr<EdcaTxopN> GetVOQueue (void) const;
-  /** Accessor for the AC_VI channel access function */
-  Ptr<EdcaTxopN> GetVIQueue (void) const;
-  /** Accessor for the AC_BE channel access function */
-  Ptr<EdcaTxopN> GetBEQueue (void) const;
-  /** Accessor for the AC_BK channel access function */
-  Ptr<EdcaTxopN> GetBKQueue (void) const;
 
   TracedCallback<const WifiMacHeader &> m_txOkCallback;
   TracedCallback<const WifiMacHeader &> m_txErrCallback;

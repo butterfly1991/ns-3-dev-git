@@ -99,6 +99,10 @@ struct VsaInfo
 
   }
 };
+struct EdcaParameter { uint32_t cwmin; uint32_t cwmax; uint32_t aifsn;} ;
+typedef std::map<AcIndex,EdcaParameter> EdcaParameterSet;
+typedef std::map<AcIndex,EdcaParameter>::const_iterator EdcaParameterSetI;
+
 /**
  * \param channelNumber channel number that the SCH service
  * can be made available for communications.
@@ -111,7 +115,7 @@ struct VsaInfo
  * control channel intervals. A value of 255 indicates indefinite access.
  * \param edcaParameterSet If present, as specified in IEEE Std 802.11.
  *
- * note: operationalRateSet and edcaParameterSet are not implemented.
+ * note: operationalRateSet is not implemented.
  */
 struct SchInfo
 {
@@ -119,7 +123,7 @@ struct SchInfo
   //OperationalRateSet  operationalRateSet;
   bool immediateAccess;
   uint8_t extendedAccess;
-  //EdcaParameterSet edcaParameterSet;
+  EdcaParameterSet edcaParameterSet;
   SchInfo ()
     : channelNumber (CCH),
       immediateAccess (false),

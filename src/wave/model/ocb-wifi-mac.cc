@@ -238,7 +238,6 @@ OcbWifiMac::SetLinkDownCallback (Callback<void> linkDown)
   NS_LOG_DEBUG ("in OCB mode the like will never down, so linkDown will never be called");
 }
 
-
 void
 OcbWifiMac::Enqueue (Ptr<const Packet> packet, Mac48Address to)
 {
@@ -381,6 +380,48 @@ OcbWifiMac::Receive (Ptr<Packet> packet, const WifiMacHeader *hdr)
 }
 
 void
+OcbWifiMac::ConfigureEdca (uint32_t cwmin, uint32_t cwmax, uint32_t aifsn, enum AcIndex ac)
+{
+	Ptr<Dcf> dcf;
+	  switch (ac)
+	    {
+	    case AC_VO:
+	      dcf = RegularWifiMac::GetVOQueue ();
+	      dcf->SetMinCw ((cwmin + 1) / 4 - 1);
+	      dcf->SetMaxCw ((cwmin + 1) / 2 - 1);
+	      dcf->SetAifsn (aifsn);
+	      break;
+	    case AC_VI:
+	      dcf = RegularWifiMac::GetVIQueue ();
+	      dcf->SetMinCw ((cwmin + 1) / 2 - 1);
+	      dcf->SetMaxCw (cwmin);
+	      dcf->SetAifsn (aifsn);
+	      break;
+	    case AC_BE:
+	      dcf = RegularWifiMac::GetBEQueue ();
+	      dcf->SetMinCw (cwmin);
+	      dcf->SetMaxCw (cwmax);
+	      dcf->SetAifsn (aifsn);
+	      break;
+	    case AC_BK:
+	      dcf = RegularWifiMac::GetBKQueue ();
+	      dcf->SetMinCw (cwmin);
+	      dcf->SetMaxCw (cwmax);
+	      dcf->SetAifsn (aifsn);
+	      break;
+	    case AC_BE_NQOS:
+		  dcf = RegularWifiMac::GetDcaTxop ();
+	      dcf->SetMinCw (cwmin);
+	      dcf->SetMaxCw (cwmax);
+	      dcf->SetAifsn (aifsn);
+	      break;
+	    case AC_UNDEF:
+	      NS_FATAL_ERROR ("I don't know what to do with this");
+	      break;
+	    }
+}
+
+void
 OcbWifiMac::FinishConfigureStandard (enum WifiPhyStandard standard)
 {
   NS_ASSERT ((standard == WIFI_PHY_STANDARD_80211_10MHZ)
@@ -391,51 +432,16 @@ OcbWifiMac::FinishConfigureStandard (enum WifiPhyStandard standard)
 
   // The special value of AC_BE_NQOS which exists in the Access
   // Category enumeration allows us to configure plain old DCF.
-  ConfigureOcbDcf (m_dca, cwmin, cwmax, AC_BE_NQOS);
+  ConfigureEdca (cwmin, cwmax, 2, AC_BE_NQOS);
 
   // Now we configure the EDCA functions
-  for (EdcaQueues::iterator i = m_edca.begin (); i != m_edca.end (); ++i)
-    {
-      ConfigureOcbDcf (i->second, cwmin, cwmax, i->first);
-    }
-}
+  // see IEEE802.11p-2010 section 7.3.2.29
+  // Wave CCH and SCHs set default 802.11p EDCA
+  ConfigureEdca (cwmin, cwmax, 2, AC_VO);
+  ConfigureEdca (cwmin, cwmax, 3, AC_VI);
+  ConfigureEdca (cwmin, cwmax, 6, AC_BE);
+  ConfigureEdca (cwmin, cwmax, 9, AC_BK);
 
-
-void
-OcbWifiMac::ConfigureOcbDcf (Ptr<Dcf> dcf, uint32_t cwmin, uint32_t cwmax, enum AcIndex ac)
-{
-  /* see IEEE802.11p-2010 section 7.3.2.29 */
-  switch (ac)
-    {
-    case AC_VO:
-      dcf->SetMinCw ((cwmin + 1) / 4 - 1);
-      dcf->SetMaxCw ((cwmin + 1) / 2 - 1);
-      dcf->SetAifsn (2);
-      break;
-    case AC_VI:
-      dcf->SetMinCw ((cwmin + 1) / 2 - 1);
-      dcf->SetMaxCw (cwmin);
-      dcf->SetAifsn (3);
-      break;
-    case AC_BE:
-      dcf->SetMinCw (cwmin);
-      dcf->SetMaxCw (cwmax);
-      dcf->SetAifsn (6);
-      break;
-    case AC_BK:
-      dcf->SetMinCw (cwmin);
-      dcf->SetMaxCw (cwmax);
-      dcf->SetAifsn (9);
-      break;
-    case AC_BE_NQOS:
-      dcf->SetMinCw (cwmin);
-      dcf->SetMaxCw (cwmax);
-      dcf->SetAifsn (2);
-      break;
-    case AC_UNDEF:
-      NS_FATAL_ERROR ("I don't know what to do with this");
-      break;
-    }
 }
 
 void

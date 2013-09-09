@@ -729,6 +729,7 @@ RegularWifiMac::FinishConfigureStandard (enum WifiPhyStandard standard)
     {
       ConfigureDcf (i->second, cwmin, cwmax, i->first);
     }
+
 }
 
 void

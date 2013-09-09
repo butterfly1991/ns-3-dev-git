@@ -124,15 +124,11 @@ public:
    */
   virtual void Enqueue (Ptr<const Packet> packet, Mac48Address to);
 
+  void ConfigureEdca (uint32_t cwmin, uint32_t cwmax, uint32_t aifsn, enum AcIndex ac);
+
 protected:
   virtual void FinishConfigureStandard (enum WifiPhyStandard standard);
 private:
-  /**
-   * see IEEE802.11p-2010 section 7.3.2.29
-   * Wave CCH and SCHs should call this to set default 802.11p EDCA
-   */
-  void ConfigureOcbDcf (Ptr<Dcf> dcf, uint32_t cwmin, uint32_t cwmax, enum AcIndex ac);
-
   virtual void Receive (Ptr<Packet> packet, const WifiMacHeader *hdr);
 
   VendorSpecificContentManager m_vscManager;
