@@ -30,6 +30,7 @@
 #include "ns3/log.h"
 #include "ns3/qos-tag.h"
 #include "ns3/simulator.h"
+#include "ns3/boolean.h"
 
 #include "ocb-wifi-mac.h"
 #include "wave-net-device.h"
@@ -48,6 +49,12 @@ WaveNetDevice::GetTypeId (void)
   static TypeId tid = TypeId ("ns3::WaveNetDevice")
     .SetParent<WifiNetDevice> ()
     .AddConstructor<WaveNetDevice> ()
+    .AddAttribute ("IpOnCCH",
+    		       "This Boolean attribute is set to enable IPv4 and Ipv6 packets sent on CCH",
+    		       BooleanValue (false),
+    		       MakeBooleanAccessor (&WaveNetDevice::SetIpOnCchSupported,
+    		    		                &WaveNetDevice::GetIpOnCchSupported),
+    		       MakeBooleanChecker ())
   ;
   return tid;
 }
@@ -338,6 +345,17 @@ WaveNetDevice::ChangeAddress (Address newAddress)
 }
 
 void
+WaveNetDevice::SetIpOnCchSupported (bool enable)
+{
+  m_ipOnCch = enable;
+}
+bool
+WaveNetDevice::GetIpOnCchSupported (void) const
+{
+  return m_ipOnCch;
+}
+
+void
 WaveNetDevice::SetChannelManager (Ptr<ChannelManager> channelManager)
 {
   m_channelManager = channelManager;
@@ -406,6 +424,15 @@ WaveNetDevice::SendFrom (Ptr<Packet> packet, const Address& source, const Addres
   if (m_channelManager->IsChannelDead (m_txProfile->channelNumber))
     {
       return false;
+    }
+
+  if (protocolNumber == 0x0800 || protocolNumber == 0x86DD)
+    {
+      if (!m_ipOnCch)
+      {
+    	NS_LOG_DEBUG ("IP-based packets shall not be transmitted on the CCH");
+        return false;
+      }
     }
 
   // qos tag is added by higher layer or not add to use default qos level.

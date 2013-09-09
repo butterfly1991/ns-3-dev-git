@@ -360,6 +360,15 @@ public:
    */
   virtual bool NeedsArp (void) const;
 
+  /**
+   * see 5.2.3 Transmit restrictions on CCH and SCH
+   * "Frames carrying IP packets shall not be transmitted on the CCH"
+   *
+   * If user really want to send ip packets on CCH, they can use this method
+   */
+  void SetIpOnCchSupported (bool enable);
+  bool GetIpOnCchSupported (void) const;
+
   void SetChannelManager (Ptr<ChannelManager> channelManager);
   Ptr<ChannelManager> GetChannelManager (void) const;
   void SetChannelScheduler (Ptr<ChannelScheduler> channelScheduler);
@@ -381,6 +390,8 @@ private:
   Ptr<ChannelCoordinator> m_channelCoordinator;
   Ptr<VsaRepeater> m_vsaRepeater;
   TxProfile *m_txProfile;
+
+  bool m_ipOnCch;
 
   TracedCallback<Address, Address> m_addressChange;
 };

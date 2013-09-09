@@ -29,7 +29,6 @@
 #include "vendor-specific-action.h"
 
 namespace ns3 {
-
 class OrganizationIdentifier;
 class WifiMacQueue;
 /**
@@ -51,8 +50,8 @@ public:
    * \param oi Organization Identifier field
    * see 7.3.1.31 Organization Identifier field and 10.3.29 Vendor-specific action
    *
-   * management information is allowed to transmitted by vender specific action frame.
-   * It will be called by IEEE Std 1609.4
+   * management information can be transmitted over vender specific action frame.
+   * This will be mainly called by IEEE Std 1609.4 to send WSA from IEEE Std 1609.3
    */
   void SendVsc (Ptr<Packet> vsc, Mac48Address peer, OrganizationIdentifier oi);
   /**
@@ -76,15 +75,12 @@ public:
   /*
    * Although Timing Advertisement frame is a specific management frame defined in 802.11p
    * It is mainly used in IEEE Std 1609.4 for channel switch synchronization
-   * And simulation can provide GPS synchronization ability, so we do not implement
-   */
-  // void SendTimingAdvertisement ();
-
-  /*
-   * GetSsid,SetSsid,SetBssid,GetBssid,
-   * these methods will be overwritted to log warn message
+   * And simulation can provide GPS synchronization ability, so we will not implement this.
+   *
+   * void SendTimingAdvertisement ();
    */
 
+  // GetSsid,SetSsid,SetBssid andGetBssid methods will be overwritted to log warn message
   /**
    * \returns the ssid which this MAC layer is going to try to stay in.
    */
