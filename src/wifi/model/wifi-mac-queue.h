@@ -30,8 +30,6 @@
 #include "wifi-mac-header.h"
 
 namespace ns3 {
-
-class WifiMacParameters;
 class QosBlockedDestinations;
 
 /**
@@ -142,7 +140,6 @@ protected:
   };
 
   PacketQueue m_queue;
-  WifiMacParameters *m_parameters;
   uint32_t m_maxSize;
   Time m_maxDelay;
 };

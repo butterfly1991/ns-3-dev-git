@@ -249,15 +249,17 @@ WaveNetDevice::RegisterTxProfile (const TxProfile &txprofile)
 
   // then check txprofile parameters
   // IP-based packets is not allowed to send in the CCH.
-  if (txprofile.channelNumber == CCH)
-    {
-      return false;
-    }
+  if (txprofile.channelNumber == CCH && !m_ipOnCch)
+  {
+	NS_LOG_DEBUG ("IP-based packets shall not be transmitted on the CCH");
+    return false;
+  }
 
   if (txprofile.txPowerLevel > 8)
     {
       return false;
     }
+
   m_txProfile = new TxProfile;
   *m_txProfile = txprofile;
   return true;
@@ -296,6 +298,16 @@ WaveNetDevice::SendX (Ptr<Packet> packet, const Address & dest, uint32_t protoco
     {
       return false;
     }
+
+  if ((cn == CCH) && (protocol == 0x0800 || protocol == 0x86DD))
+    {
+      if (!m_ipOnCch)
+      {
+    	NS_LOG_DEBUG ("IP-based packets shall not be transmitted on the CCH");
+        return false;
+      }
+    }
+
   // according to channel number and priority,
   // route the packet to a proper queue.
   Ptr<WifiMac> mac = WifiNetDevice::GetMac ();
@@ -402,54 +414,49 @@ WaveNetDevice::NeedsArp (void) const
 }
 
 bool
-WaveNetDevice::Send (Ptr<Packet> packet, const Address& dest, uint16_t protocolNumber)
+WaveNetDevice::Send (Ptr<Packet> packet, const Address& dest, uint16_t protocol)
 {
-  NS_LOG_FUNCTION (this << packet << dest << protocolNumber);
-  // now I do know what difference is between Send and SendFrom
-  // but codes seem the same
-  return WifiNetDevice::SendFrom (packet, GetAddress (), dest, protocolNumber);
+  NS_LOG_FUNCTION (this << packet << dest << protocol);
+  // here shall be a txprofile. otherwise discard packet
+    if (m_txProfile == 0)
+      {
+        return false;
+      }
+    // channel access shall be assigned
+    if (m_channelManager->IsChannelDead (m_txProfile->channelNumber))
+      {
+        return false;
+      }
+
+    // qos tag is added by higher layer or not add to use default qos level.
+    ChannelTag channel (m_txProfile->channelNumber);
+    packet->AddPacketTag (channel);
+
+    if (m_txProfile->txPowerLevel < 8 && m_txProfile->dataRate != UnknownDataRate)
+      {
+        WifiMode datarate =  GetPhy ()->GetMode (m_txProfile->dataRate);
+        WifiTxVector txVector;
+        txVector.SetTxPowerLevel (m_txProfile->txPowerLevel);
+        txVector.SetMode (datarate);
+        HigherDataTxVectorTag tag = HigherDataTxVectorTag (txVector, false);
+        packet->AddPacketTag (tag);
+      }
+    return WifiNetDevice::Send (packet, dest, protocol);
 }
 
 bool
-WaveNetDevice::SendFrom (Ptr<Packet> packet, const Address& source, const Address& dest, uint16_t protocolNumber)
+WaveNetDevice::SendFrom (Ptr<Packet> packet, const Address& source, const Address& dest, uint16_t protocol)
 {
-  NS_LOG_FUNCTION (this << packet << source << dest << protocolNumber);
-
-  // here shall be a txprofile. otherwise discard packet
-  if (m_txProfile == 0)
-    {
-      return false;
-    }
-  // channel access shall be assigned
-  if (m_channelManager->IsChannelDead (m_txProfile->channelNumber))
-    {
-      return false;
-    }
-
-  if (protocolNumber == 0x0800 || protocolNumber == 0x86DD)
-    {
-      if (!m_ipOnCch)
-      {
-    	NS_LOG_DEBUG ("IP-based packets shall not be transmitted on the CCH");
-        return false;
-      }
-    }
-
-  // qos tag is added by higher layer or not add to use default qos level.
-  ChannelTag channel (m_txProfile->channelNumber);
-  packet->AddPacketTag (channel);
-
-  if (m_txProfile->txPowerLevel < 8 && m_txProfile->dataRate != UnknownDataRate)
-    {
-      WifiMode datarate =  GetPhy ()->GetMode (m_txProfile->dataRate);
-      WifiTxVector txVector;
-      txVector.SetTxPowerLevel (m_txProfile->txPowerLevel);
-      txVector.SetMode (datarate);
-      HigherDataTxVectorTag tag = HigherDataTxVectorTag (txVector, false);
-      packet->AddPacketTag (tag);
-    }
-  return WifiNetDevice::SendFrom (packet, source, dest, protocolNumber);
+  NS_LOG_FUNCTION (this << packet << source << dest << protocol);
+  return false;
 }
+
+bool
+WaveNetDevice::SupportsSendFrom (void) const
+{
+  return false;
+}
+
 void
 WaveNetDevice::WaveForwardUp (Ptr<Packet> packet, Mac48Address from, Mac48Address to)
 {

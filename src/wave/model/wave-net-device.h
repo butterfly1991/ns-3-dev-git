@@ -345,13 +345,10 @@ public:
   virtual bool IsLinkUp (void) const;
   virtual void AddLinkChangeCallback (Callback<void> callback);
 
-  /**
-   * WAVE supports both WSMP and IPv6 packets in data plane
-   * Here we will not prevent IPv4 packets, users can use this method
-   * to send any packet, even WSMP packets.
-   */
-  virtual bool Send (Ptr<Packet> packet, const Address& dest, uint16_t protocolNumber);
-  virtual bool SendFrom (Ptr<Packet> packet, const Address& source, const Address& dest, uint16_t protocolNumber);
+  virtual bool Send (Ptr<Packet> packet, const Address& dest, uint16_t protocol);
+  virtual bool SendFrom (Ptr<Packet> packet, const Address& source, const Address& dest, uint16_t protocol);
+  virtual bool SupportsSendFrom (void) const;
+
   /**
    * Whether NeedsArp or not?
    * For IP-based Packets , yes;
