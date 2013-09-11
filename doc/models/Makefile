@@ -69,6 +69,7 @@ SOURCES = \
 	$(SRC)/stats/doc/statistics.rst \
 	$(SRC)/netanim/doc/animation.rst \
 	$(SRC)/flow-monitor/doc/flow-monitor.rst \
+	$(SRC)/wave/doc/wave.rst \
 
 # list all model library figure files that need to be copied to 
 # $SOURCETEMP/figures.  For each figure to be included in all
@@ -309,7 +310,7 @@ IMAGES_PDF = ${IMAGES_EPS:.eps=.pdf}
 
 IMAGES = $(IMAGES_EPS) $(IMAGES_PNG) $(IMAGES_PDF)
 
-RESCALE = $(shell hg root)/utils/rescale-pdf.sh
+RESCALE = ../../utils/rescale-pdf.sh
 
 %.eps : %.dia; $(DIA) -t eps $< -e $@
 %.png : %.dia; $(DIA) -t png $< -e $@

@@ -44,5 +44,6 @@ This document is written in `reStructuredText <http://docutils.sourceforge.net/r
    statistics
    topology
    uan
+   wave
    wifi
    wimax
