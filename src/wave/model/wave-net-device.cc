@@ -108,7 +108,12 @@ WaveNetDevice::DoInitialize (void)
   m_channelScheduler->Initialize ();
   m_vsaRepeater->Initialize ();
   WifiNetDevice::DoInitialize ();
-  GetMac ()->SetForwardUpCallback (MakeCallback (&WaveNetDevice::WaveForwardUp, this));
+  uint8_t oibytes[5] = {0x00, 0x50, 0xC2, 0x4A, 0x40};
+  OrganizationIdentifier oiWave = OrganizationIdentifier (oibytes, 5);
+  Ptr<OcbWifiMac> macWave = DynamicCast<OcbWifiMac>(GetMac ());
+  NS_ASSERT (macWave != 0);
+  macWave->AddReceiveVscCallback (oiWave, MakeCallback (&WaveNetDevice::DoReceiveVsc, this));
+  macWave->SetForwardUpCallback (MakeCallback (&WaveNetDevice::WaveForwardUp, this));
 }
 
 bool

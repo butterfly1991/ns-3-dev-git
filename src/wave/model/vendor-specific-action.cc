@@ -125,10 +125,9 @@ OrganizationIdentifier::Serialize (Buffer::Iterator start) const
 uint32_t
 OrganizationIdentifier::Deserialize (Buffer::Iterator start)
 {
-  // first try to parse OUI23 with 3 bytes
+  // first try to parse OUI24 with 3 bytes
   start.Read (m_oi,  3);
-  std::vector<OrganizationIdentifier>& c = OrganizationIdentifiers;
-  for (std::vector<OrganizationIdentifier>::iterator  i = c.begin (); i != c.end (); ++i)
+  for (std::vector<OrganizationIdentifier>::iterator  i = OrganizationIdentifiers.begin (); i != OrganizationIdentifiers.end (); ++i)
     {
       const OrganizationIdentifier & m = *i;
       const uint8_t * data = m.PeekData ();
@@ -142,7 +141,7 @@ OrganizationIdentifier::Deserialize (Buffer::Iterator start)
 
   // then try to parse OUI36 with 5 bytes
   start.Read (m_oi + 3,  2);
-  for (std::vector<OrganizationIdentifier>::iterator  i = c.begin (); i != c.end (); ++i)
+  for (std::vector<OrganizationIdentifier>::iterator  i = OrganizationIdentifiers.begin (); i != OrganizationIdentifiers.end (); ++i)
     {
       const OrganizationIdentifier & m = *i;
       const uint8_t * data = m.PeekData ();
