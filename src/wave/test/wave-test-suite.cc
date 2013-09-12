@@ -650,23 +650,27 @@ void
 AlternatingAccessTestCase::Send ()
 {
   Ptr<Packet> p = Create<Packet> (1000);
+  TxInfo info;
   Ptr<ChannelCoordinator> coordinator = m_sender->GetChannelCoordinator ();
   if (coordinator->IsCchiNow ())
     {
+	  info = TxInfo (CCH);
       p->AddByteTag (FlowIdTag (CCHI));
     }
-  else
-    {
+ else
+   {
+      info = TxInfo (SCH1);
       p->AddByteTag (FlowIdTag (SCHI));
-    }
-
+   }
   std::cout << " send time = " << Now ().GetMilliSeconds () << std::endl;
-  m_sender->Send (p, Mac48Address::GetBroadcast (), 0x00);
+
+  m_sender->SendX (p, Mac48Address::GetBroadcast (), 0x00, info);
   m_sends++;
 }
 bool
 AlternatingAccessTestCase::Receive (Ptr<NetDevice> dev, Ptr<const Packet> pkt, uint16_t mode, const Address &sender)
 {
+  std::cout << " Receive time = " << Now ().GetMilliSeconds () << std::endl;
   Ptr<ChannelCoordinator> coordinator = m_receiver->GetChannelCoordinator ();
   // although in the standard, the first 1ms and last 1ms of guard interval, the device can
   // only receive packet for the fact that devices may not be precisely aligned in time.
@@ -697,7 +701,7 @@ AlternatingAccessTestCase::Receive (Ptr<NetDevice> dev, Ptr<const Packet> pkt, u
 bool
 AlternatingAccessTestCase::ReceiveInCch (Ptr<NetDevice> dev, Ptr<const Packet> pkt, uint16_t mode, const Address &sender)
 {
-  std::cout << " ReceiveInCsch time = " << Now ().GetMilliSeconds () << std::endl;
+  std::cout << " ReceiveInCch time = " << Now ().GetMilliSeconds () << std::endl;
   Ptr<ChannelCoordinator> coordinator = m_cchReceiver->GetChannelCoordinator ();
   // actually we can receive packet at the guard interval of CCHI when channel access is ContinuoisAccess,
   // but since here is only one sender with AlternatingAccess which will not send packets at guard interval,
@@ -753,10 +757,6 @@ AlternatingAccessTestCase::DoRun ()
   Simulator::Schedule (Seconds (0), &WaveNetDevice::StartSch, m_cchReceiver, info);
   info = SchInfo (SCH1, false, 0xff);
   Simulator::Schedule (Seconds (0), &WaveNetDevice::StartSch, m_schReceiver, info);
-
-  // we need to register txprofile before when we want to use Send method
-  const TxProfile txProfile = TxProfile (SCH1);
-  Simulator::Schedule (Seconds (0), &WaveNetDevice::RegisterTxProfile, m_sender, txProfile);
 
   Ptr<UniformRandomVariable> random = CreateObject<UniformRandomVariable> ();
   int time = 0;

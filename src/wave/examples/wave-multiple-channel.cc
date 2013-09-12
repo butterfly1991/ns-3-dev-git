@@ -167,7 +167,7 @@ private:
   // we treat WSMP packets as safety message
   void SendWsmpPackets (Ptr<WaveNetDevice> sender, uint32_t channelNumber);
   // we treat IP packets as non-safety message
-  void SendIpPackets (Ptr<WaveNetDevice> sender, uint32_t channelNumber);
+  void SendIpPackets (Ptr<WaveNetDevice> sender);
 
   void ConfigurationA ();
   void ConfigurationB ();
@@ -253,7 +253,7 @@ void
 MultipleChannelExperiment::Usage (void)
 {
   std::cout << "usage:"
-		    << "./waf --run=\"wave-multiple-channel --intArg=2 --verbose \""
+		    << "./waf --run=\"wave-multiple-channel \""
             << std::endl;
 }
 
@@ -359,9 +359,9 @@ MultipleChannelExperiment::Receive (Ptr<NetDevice> dev, Ptr<const Packet> pkt, u
 // simplify ip routing protocol and application. Actually they will
 // make delay and through of safety message more serious.
 void
-MultipleChannelExperiment::SendIpPackets (Ptr<WaveNetDevice> sender, uint32_t channelNumber)
+MultipleChannelExperiment::SendIpPackets (Ptr<WaveNetDevice> sender)
 {
-  NS_LOG_FUNCTION (this << sender << channelNumber);
+  NS_LOG_FUNCTION (this << sender);
 
   Time now = Now ();
   Ptr<Packet> packet = Create<Packet> (sizeNonSafety);
@@ -386,8 +386,7 @@ MultipleChannelExperiment::SendIpPackets (Ptr<WaveNetDevice> sender, uint32_t ch
     }
 
   bool result = false;
-  TxInfo info = TxInfo (channelNumber);
-  result = sender->SendX (packet, dest, IPv4_PROT_NUMBER, info);
+  result = sender->Send (packet, dest, IPv4_PROT_NUMBER);
   if (result)
     {
       outfile << "Time = " << now.GetMicroSeconds () << "us, unicast IP packet:  ID = " << tag.GetPacketId ()
@@ -477,17 +476,19 @@ MultipleChannelExperiment::ConfigurationA ()
   for (i = devices.Begin (); i != devices.End (); ++i)
     {
       Ptr<WaveNetDevice> sender = DynamicCast<WaveNetDevice> (*i);
-      SchInfo schInfo = SchInfo (CCH, false, 0xff);
-      Simulator::Schedule (Seconds (0.0),&WaveNetDevice::StartSch,sender,schInfo);
+      SchInfo schInfo = SchInfo (SCH1, false, 0xff);
+      Simulator::Schedule (Seconds (0.0), &WaveNetDevice::StartSch, sender, schInfo);
+      TxProfile profile = TxProfile (SCH1);
+      Simulator::Schedule (Seconds (0.0), &WaveNetDevice::RegisterTxProfile, sender, profile);
       for (uint32_t time = 0; time != simulationTime; ++time)
         {
           for (uint32_t sends = 0; sends != frequencySafety; ++sends)
             {
-              Simulator::Schedule (Seconds (rngSafety->GetValue (time, time + 1)), &MultipleChannelExperiment::SendWsmpPackets, this, sender, CCH);
+              Simulator::Schedule (Seconds (rngSafety->GetValue (time, time + 1)), &MultipleChannelExperiment::SendWsmpPackets, this, sender, SCH1);
             }
           for (uint32_t sends = 0; sends != frequencyNonSafety; ++sends)
             {
-              Simulator::Schedule (Seconds (rngNonSafety->GetValue (time, time + 1)), &MultipleChannelExperiment::SendIpPackets, this, sender, CCH);
+              Simulator::Schedule (Seconds (rngNonSafety->GetValue (time, time + 1)), &MultipleChannelExperiment::SendIpPackets, this, sender);
             }
         }
     }
@@ -501,6 +502,8 @@ MultipleChannelExperiment::ConfigurationB ()
       Ptr<WaveNetDevice> sender = DynamicCast<WaveNetDevice> (*i);
       SchInfo schInfo = SchInfo (SCH1, false, 0x0);
       Simulator::Schedule (Seconds (0.0),&WaveNetDevice::StartSch,sender,schInfo);
+      TxProfile profile = TxProfile (SCH1);
+      Simulator::Schedule (Seconds (0.0), &WaveNetDevice::RegisterTxProfile, sender, profile);
 
       for (uint32_t time = 0; time != simulationTime; ++time)
         {
@@ -510,7 +513,7 @@ MultipleChannelExperiment::ConfigurationB ()
             }
           for (uint32_t sends = 0; sends != frequencyNonSafety; ++sends)
             {
-              Simulator::Schedule (Seconds (rngNonSafety->GetValue (time, time + 1)), &MultipleChannelExperiment::SendIpPackets, this, sender, SCH1);
+              Simulator::Schedule (Seconds (rngNonSafety->GetValue (time, time + 1)), &MultipleChannelExperiment::SendIpPackets, this, sender);
             }
         }
     }
@@ -524,6 +527,8 @@ MultipleChannelExperiment::ConfigurationC ()
       Ptr<WaveNetDevice> sender = DynamicCast<WaveNetDevice> (*i);
       SchInfo schInfo = SchInfo (SCH1, false, 0x0);
       Simulator::Schedule (Seconds (0.0),&WaveNetDevice::StartSch,sender,schInfo);
+      TxProfile profile = TxProfile (SCH1);
+      Simulator::Schedule (Seconds (0.0), &WaveNetDevice::RegisterTxProfile, sender, profile);
 
       Ptr<ChannelCoordinator> coordinator = sender->GetChannelCoordinator ();
       for (uint32_t time = 0; time != simulationTime; ++time)
@@ -550,7 +555,7 @@ MultipleChannelExperiment::ConfigurationC ()
                     + coordinator->NeedTimeToSchiAfter (t)
                     +  MicroSeconds (rngOther->GetInteger (0, coordinator->GetSchInterval ().GetMicroSeconds () - 1));
                 }
-              Simulator::Schedule (t, &MultipleChannelExperiment::SendIpPackets, this, sender, SCH1);
+              Simulator::Schedule (t, &MultipleChannelExperiment::SendIpPackets, this, sender);
             }
         }
     }
@@ -564,6 +569,8 @@ MultipleChannelExperiment::ConfiguartionD ()
       Ptr<WaveNetDevice> sender = DynamicCast<WaveNetDevice> (*i);
       SchInfo schInfo = SchInfo (SCH1, false, 0x0);
       Simulator::Schedule (Seconds (0.0),&WaveNetDevice::StartSch,sender,schInfo);
+      TxProfile profile = TxProfile (SCH1);
+      Simulator::Schedule (Seconds (0.0), &WaveNetDevice::RegisterTxProfile, sender, profile);
 
       Ptr<ChannelCoordinator> coordinator = sender->GetChannelCoordinator ();
       for (uint32_t time = 0; time != simulationTime; ++time)
@@ -590,7 +597,7 @@ MultipleChannelExperiment::ConfiguartionD ()
                     +  MicroSeconds (rngOther->GetInteger (0, coordinator->GetCchInterval ().GetMicroSeconds () - 1));
 
                 }
-              Simulator::Schedule (t, &MultipleChannelExperiment::SendIpPackets, this, sender, SCH1);
+              Simulator::Schedule (t, &MultipleChannelExperiment::SendIpPackets, this, sender);
             }
         }
     }
