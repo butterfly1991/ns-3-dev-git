@@ -411,7 +411,7 @@ public:
   Time GetPifs (void) const;
   Time GetRifs (void) const;
   Mac48Address GetBssid (void) const;
-  bool GetPromisc (void) const;
+  bool IsPromisc (void) const;
 
   /**
    * \param callback the callback which receives every incoming packet.

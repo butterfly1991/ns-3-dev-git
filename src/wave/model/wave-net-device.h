@@ -25,10 +25,9 @@
 #include "ns3/packet.h"
 #include "ns3/traced-callback.h"
 #include "ns3/mac48-address.h"
-
+#include "channel-coordinator.h"
 #include "channel-manager.h"
 #include "channel-scheduler.h"
-#include "channel-coordinator.h"
 #include "vsa-repeater.h"
 #include "vendor-specific-action.h"
 namespace ns3 {
@@ -86,14 +85,14 @@ struct VsaInfo
 
   enum VsaSentChannelInterval channelInterval;
 
-  VsaInfo (Mac48Address p, OrganizationIdentifier o, uint8_t m, Ptr<Packet> v,
-           uint32_t c, uint8_t r, enum VsaSentChannelInterval i)
-    : peer (p),
-      oi (o),
-      managementId (m),
-      vsc (v),
-      channelNumber (c),
-      repeatRate (r),
+  VsaInfo (Mac48Address peer, OrganizationIdentifier identifier, uint8_t manageId, Ptr<Packet> vscPacket,
+           uint32_t channel, uint8_t repeat, enum VsaSentChannelInterval i)
+    : peer (peer),
+      oi (identifier),
+      managementId (manageId),
+      vsc (vscPacket),
+      channelNumber (channel),
+      repeatRate (repeat),
       channelInterval (i)
   {
 
@@ -115,7 +114,7 @@ typedef std::map<AcIndex,EdcaParameter>::const_iterator EdcaParameterSetI;
  * control channel intervals. A value of 255 indicates indefinite access.
  * \param edcaParameterSet If present, as specified in IEEE Std 802.11.
  *
- * note: operationalRateSet is not implemented.
+ * note: operationalRateSet is not supported yet.
  */
 struct SchInfo
 {
@@ -131,10 +130,10 @@ struct SchInfo
   {
 
   }
-  SchInfo (uint32_t c, bool i, uint32_t e)
-    : channelNumber (c),
-      immediateAccess (i),
-      extendedAccess (e)
+  SchInfo (uint32_t channel, bool immediate, uint32_t channelAccess)
+    : channelNumber (channel),
+      immediateAccess (immediate),
+      extendedAccess (channelAccess)
   {
 
   }
@@ -168,12 +167,12 @@ struct TxInfo
   {
 
   }
-  TxInfo (uint32_t c, uint32_t p = 0, enum DataRate d = UnknownDataRate, uint32_t t = 8, uint32_t e = 0)
-    : channelNumber (c),
-      priority (p),
-      dataRate (d),
-      txPowerLevel (t),
-      expiryTime (e)
+  TxInfo (uint32_t channel, uint32_t prio = 0, enum DataRate rate = UnknownDataRate, uint32_t powerLevel = 8, uint32_t expire = 0)
+    : channelNumber (channel),
+      priority (prio),
+      dataRate (rate),
+      txPowerLevel (powerLevel),
+      expiryTime (expire)
   {
 
   }
@@ -208,11 +207,11 @@ struct TxProfile
       dataRate (UnknownDataRate)
   {
   }
-  TxProfile (uint32_t c, bool a = false, uint32_t t = 8, enum DataRate d = UnknownDataRate)
-    : channelNumber (c),
-      adaptable (a),
-      txPowerLevel (t),
-      dataRate (d)
+  TxProfile (uint32_t channel, bool adapt = false, uint32_t powerLevel = 8, enum DataRate rate = UnknownDataRate)
+    : channelNumber (channel),
+      adaptable (adapt),
+      txPowerLevel (powerLevel),
+      dataRate (rate)
   {
   }
 };

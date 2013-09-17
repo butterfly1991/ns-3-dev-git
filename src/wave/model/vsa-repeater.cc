@@ -149,6 +149,7 @@ void
 VsaRepeater::DoSendVsaByInterval (uint32_t interval, uint32_t channel,
                                   Ptr<Packet> packet, OrganizationIdentifier oi, Mac48Address peer)
 {
+  NS_ASSERT (interval < 4);
   Ptr<ChannelCoordinator> coordinator = m_device->GetChannelCoordinator ();
   Ptr<ChannelManager> manager = m_device->GetChannelManager ();
   Ptr<ChannelScheduler> scheduler = m_device->GetChannelScheduler ();
@@ -187,10 +188,6 @@ VsaRepeater::DoSendVsaByInterval (uint32_t interval, uint32_t channel,
   else if (interval == 3)
     {
       immediate = true;
-    }
-  else
-    {
-      NS_FATAL_ERROR ("cannot be here");
     }
 
   if (!immediate)

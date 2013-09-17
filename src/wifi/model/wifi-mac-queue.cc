@@ -59,6 +59,7 @@ WifiMacQueue::GetTypeId (void)
 }
 
 WifiMacQueue::WifiMacQueue ()
+  : m_size (0)
 {
 }
 
@@ -95,12 +96,13 @@ void
 WifiMacQueue::Enqueue (Ptr<const Packet> packet, const WifiMacHeader &hdr)
 {
   Cleanup ();
-  if (m_queue.size () == m_maxSize)
+  if (m_size == m_maxSize)
     {
       return;
     }
   Time now = Simulator::Now ();
   m_queue.push_back (Item (packet, hdr, now));
+  m_size++;
 }
 
 void
@@ -112,7 +114,8 @@ WifiMacQueue::Cleanup (void)
     }
 
   Time now = Simulator::Now ();
-  for (PacketQueueI i = m_queue.begin (); i != m_queue.end (); )
+  uint32_t n = 0;
+  for (PacketQueueI i = m_queue.begin (); i != m_queue.end ();)
     {
       if (i->tstamp + m_maxDelay > now)
         {
@@ -121,8 +124,10 @@ WifiMacQueue::Cleanup (void)
       else
         {
           i = m_queue.erase (i);
+          n++;
         }
     }
+  m_size -= n;
 }
 
 Ptr<const Packet>
@@ -133,6 +138,7 @@ WifiMacQueue::Dequeue (WifiMacHeader *hdr)
     {
       Item i = m_queue.front ();
       m_queue.pop_front ();
+      m_size--;
       *hdr = i.hdr;
       return i.packet;
     }
@@ -172,6 +178,7 @@ WifiMacQueue::DequeueByTidAndAddress (WifiMacHeader *hdr, uint8_t tid,
                   packet = it->packet;
                   *hdr = it->hdr;
                   m_queue.erase (it);
+                  m_size--;
                   break;
                 }
             }
@@ -215,13 +222,14 @@ WifiMacQueue::IsEmpty (void)
 uint32_t
 WifiMacQueue::GetSize (void)
 {
-  return m_queue.size ();
+  return m_size;
 }
 
 void
 WifiMacQueue::Flush (void)
 {
   m_queue.erase (m_queue.begin (), m_queue.end ());
+  m_size = 0;
 }
 
 Mac48Address
@@ -251,6 +259,7 @@ WifiMacQueue::Remove (Ptr<const Packet> packet)
       if (it->packet == packet)
         {
           m_queue.erase (it);
+          m_size--;
           return true;
         }
     }
@@ -261,12 +270,13 @@ void
 WifiMacQueue::PushFront (Ptr<const Packet> packet, const WifiMacHeader &hdr)
 {
   Cleanup ();
-  if (m_queue.size () == m_maxSize)
+  if (m_size == m_maxSize)
     {
       return;
     }
   Time now = Simulator::Now ();
   m_queue.push_front (Item (packet, hdr, now));
+  m_size++;
 }
 
 uint32_t
@@ -308,6 +318,7 @@ WifiMacQueue::DequeueFirstAvailable (WifiMacHeader *hdr, Time &timestamp,
           timestamp = it->tstamp;
           packet = it->packet;
           m_queue.erase (it);
+          m_size--;
           return packet;
         }
     }

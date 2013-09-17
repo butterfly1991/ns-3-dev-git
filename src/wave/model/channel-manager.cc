@@ -38,12 +38,12 @@ ChannelManager::GetTypeId (void)
 
 ChannelManager::ChannelManager ()
 {
-  WaveChannel c = {0, DEFAULT_CCH_OPERATING_CLASS, true, Ofdm6Mbps, 4, ChannelDead};
-  for (uint32_t channel_index = 0; channel_index != CHANNELS_OF_WAVE; ++channel_index)
+  WaveChannel c = {0, DEFAULT_CCH_OPERATING_CLASS, true, Ofdm6Mbps, 4, CHANNEL_DEAD};
+  for (uint32_t channelIndex = 0; channelIndex != CHANNELS_OF_WAVE; ++channelIndex)
     {
       WaveChannel *channel = new WaveChannel;
       *channel = c;
-      channel->channelNumber = SCH1 + 2 * channel_index;
+      channel->channelNumber = SCH1 + 2 * channelIndex;
       m_channels.push_back (channel);
     }
 }
@@ -72,7 +72,7 @@ ChannelManager::IsSch (uint32_t channelNumber)
     {
       return false;
     }
-  return (channelNumber != CCH);
+  return !IsCch (channelNumber);
 }
 bool
 ChannelManager::IsWaveChannel (uint32_t channelNumber)
@@ -109,17 +109,17 @@ ChannelManager::SetState (uint32_t channelNumber, enum ChannelManager::ChannelSt
 bool
 ChannelManager::IsChannelActive (uint32_t channelNumber)
 {
-  return (GetState (channelNumber)) == ChannelActive;
+  return (GetState (channelNumber)) == CHANNEL_ACTIVE;
 }
 bool
 ChannelManager::IsChannelInactive (uint32_t channelNumber)
 {
-  return (GetState (channelNumber)) == ChannelInactive;
+  return (GetState (channelNumber)) == CHANNEL_INACTIVE;
 }
 bool
 ChannelManager::IsChannelDead (uint32_t channelNumber)
 {
-  return (GetState (channelNumber)) == ChannelDead;
+  return (GetState (channelNumber)) == CHANNEL_DEAD;
 }
 uint32_t
 ChannelManager::GetOperatingClass (uint32_t channelNumber)

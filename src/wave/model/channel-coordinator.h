@@ -103,61 +103,45 @@ class ChannelCoordinator : public Object
 {
 public:
   static TypeId GetTypeId (void);
-  ChannelCoordinator ();
-  virtual ~ChannelCoordinator ();
+  ChannelCoordinator (void);
+  virtual ~ChannelCoordinator (void);
 
-  virtual void SetCchInterval (Time cchInterval);
-  virtual Time GetCchInterval ();
-  virtual void SetSchInterval (Time schInterval);
-  virtual Time GetSchInterval ();
+  static Time GetDefaultCchInterval (void);
+  static Time GetDefaultSchInterval (void);
+  static Time GetDefaultSyncTolerance (void);
+  static Time GetDefaultMaxSwitchTime (void);
 
+  void SetCchInterval (Time cchInterval);
+  Time GetCchInterval (void) const;
+  void SetSchInterval (Time schInterval);
+  Time GetSchInterval (void) const;
+  Time GetSyncInterval (void) const;
+  void SetSyncTolerance (Time syncTolerance);
+  Time GetSyncTolerance (void) const;
+  void SetMaxSwitchTime (Time maxSwitchTime);
+  Time GetMaxSwitchTime (void) const;
+  Time GetGuardInterval (void) const;
 
-  inline bool IsSchiNow ()
-  {
-    return IsSchiAfter (Seconds (0));
-  }
-  inline bool IsCchiNow ()
-  {
-    return IsCchiAfter (Seconds (0));
-  }
-  virtual bool IsSchiAfter (Time duration);
-  virtual bool IsCchiAfter (Time duration);
-
-  inline Time NeedTimeToSchiNow (void)
-  {
-    return NeedTimeToSchiAfter (Seconds (0));
-  }
-  virtual Time NeedTimeToSchiAfter (Time duration);
-  inline Time NeedTimeToCchiNow (void)
-  {
-    return NeedTimeToCchiAfter (Seconds (0));
-  }
-  virtual Time NeedTimeToCchiAfter (Time duration);
-  inline Time NeedTimeToGuardiNow (void)
-  {
-    return NeedTimeToGuardiAfter (Seconds (0));
-  }
-  virtual Time NeedTimeToGuardiAfter (Time duration);
-
-  inline bool IsSyncToleranceNow (void)
-  {
-    return IsSyncToleranceAfter (Seconds (0));
-  }
-  virtual bool IsSyncToleranceAfter (Time duration);
-
-  // although channel switch time of PHY is less than MaxSwitchTime;
+  bool IsSchIntervalNow (void) const;
+  bool IsCchIntervalNow (void) const;
+  bool IsSchIntervalAfter (Time duration) const;
+  bool IsCchIntervalAfter (Time duration) const;
+  bool IsGuardIntervalNow (void) const;
+  bool IsGuardIntervalAfter (Time duration) const;
+  bool IsSyncToleranceNow (void) const;
+  bool IsSyncToleranceAfter (Time duration) const;
+  // although real channel switch time of PHY is less than MaxSwitchTime;
   // this method will return true if the time is in MaxSwitchTime.
-  inline bool IsMaxSwitchTimeNow (void)
-  {
-    return IsMaxSwitchTimeAfter (Seconds (0));
-  }
-  virtual bool IsMaxSwitchTimeAfter (Time duration);
+  bool IsMaxSwitchTimeNow (void) const;
+  bool IsMaxSwitchTimeAfter (Time duration) const;
 
-  inline bool IsGuardiNow (void)
-  {
-    return IsGuardiAfter (Seconds (0));
-  }
-  virtual bool IsGuardiAfter (Time duration);
+  Time NeedTimeToSchiNow (void) const;
+  Time NeedTimeToSchiAfter (Time duration) const;
+  Time NeedTimeToCchiNow (void) const;
+  Time NeedTimeToCchiAfter (Time duration) const;
+  Time NeedTimeToGuardiNow (void) const;
+  Time NeedTimeToGuardiAfter (Time duration) const;
+
   /**
    *  return the time in a Sync Interval
    *  for example:
@@ -165,10 +149,7 @@ public:
    *  Now = 5s20ms;
    *  then GetIntervalTimeNow () = 20ms.
    */
-  inline Time GetIntervalTimeNow ()
-  {
-    return GetIntervalTimeAfter (Seconds (0));
-  }
+  Time GetIntervalTimeNow (void) const;
   /**
    * \param duration the future time after duration
    *  return the time in a Sync Interval
@@ -178,7 +159,8 @@ public:
    *  duration = 50ms;
    *  then GetIntervalTimeAfter (duration) = 70ms.
    */
-  Time GetIntervalTimeAfter (Time duration);
+  Time GetIntervalTimeAfter (Time duration) const;
+
   /**
    * Why need start and stop?
    * Actually we can Simulator::Schedule channel coordination events from Time(0).
@@ -186,9 +168,9 @@ public:
    * if users do not need alternating access, these 50ms events are needless.
    * Normally the methods are called by ChannelScheduler when need.
    */
-  void Start ();
-  void Stop ();
-  bool IsStopped ();
+  void Start (void);
+  void Stop (void);
+  bool IsStopped (void) const;
   /**
    * \param listener the new listener pointer
    *
@@ -198,20 +180,8 @@ public:
    * when ChannelCoordinator destruct, so the caller should not delete
    * listener by itself.
    */
-  virtual void RegisterListener (ChannelCoordinationListener *listener);
+  void RegisterListener (ChannelCoordinationListener *listener);
 
-  virtual void SetSyncTolerance (Time syncTolerance);
-  virtual Time GetSyncTolerance ();
-  virtual void SetMaxSwitchTime (Time maxSwitchTime);
-  virtual Time GetMaxSwitchTime ();
-
-  virtual Time GetSyncInterval ();
-  virtual Time GetGuardInterval ();
-
-  static Time GetDefaultCchInterval ();
-  static Time GetDefaultSchInterval ();
-  static Time GetDefaultSyncTolerance ();
-  static Time GetDefaultMaxSwitchTime ();
 protected:
   virtual void DoInitialize (void);
 private:
@@ -219,19 +189,14 @@ private:
   void NotifyCch ();
   void NotifyGuard ();
   /**
-   * means SCH channel access time, default 46ms
+   * get SCH channel access time, default 46ms
    */
-  inline Time GetSchSlot ()
-  {
-    return m_schInterval - (m_syncTolerance + m_maxSwitchTime);
-  }
+  Time GetSchSlot (void) const;
   /**
-   * means CCH channel access time, default 46ms
+   * get CCH channel access time, default 46ms
    */
-  inline Time GetCchSlot ()
-  {
-    return m_cchInterval - (m_syncTolerance + m_maxSwitchTime);
-  }
+  Time GetCchSlot (void) const;
+
   Time m_cchInterval;
   Time m_schInterval;
   Time m_syncTolerance;

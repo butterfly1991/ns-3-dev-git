@@ -96,20 +96,20 @@ public:
   static bool IsWaveChannel (uint32_t channelNumber);
   /**
    * enum ChannelState - Channel State indicate channel access assignment
-   * ChannelDead, no channel access has been assigned for this
+   * CHANNEL_DEAD, no channel access has been assigned for this
    * channel, so this channel cannot send and receive packets;
-   * ChannelActive, channel access is assigned, so packets will
+   * CHANNEL_ACTIVE, channel access is assigned, so packets will
    * be queued and ready to be sent whenever PHY permits.
-   * ChannelInactive, the channel access will be assigned in
+   * CHANNEL_INACTIVE, the channel access will be assigned in
    * next interval but now has no channel access. Packets will be queued
    * but cannot be sent until ChannelScheduler assigns channel access for
    * this channel in next channel interval controlled by ChannelCoordinator.
    */
   enum ChannelState
   {
-    ChannelDead,
-    ChannelActive,
-    ChannelInactive,
+    CHANNEL_DEAD,
+    CHANNEL_ACTIVE,
+    CHANNEL_INACTIVE,
   };
   enum ChannelState GetState (uint32_t channelNumber);
   void SetState (uint32_t channelNumber, enum ChannelState);

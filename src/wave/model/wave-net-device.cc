@@ -489,7 +489,8 @@ WaveNetDevice::WaveForwardUp (Ptr<Packet> packet, Mac48Address from, Mac48Addres
    * So I add a check here, when devices receive packets at guard interval, the packets will
    * be dropped as they haven't been received correctly.
    */
-  if (m_channelScheduler->GetAccess () == ChannelScheduler::AlternatingAccess && m_channelCoordinator->IsGuardiNow ())
+  if (m_channelScheduler->GetAccess () == ChannelScheduler::AlternatingAccess
+		  && m_channelCoordinator->IsGuardIntervalNow ())
     {
       return;
     }

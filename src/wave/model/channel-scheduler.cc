@@ -164,8 +164,9 @@ ChannelScheduler::IsAccessAssigned (uint32_t channelNumber) const
 {
   switch (m_channelAccess)
     {
-    case ExtendedAccess:
+    // continuous access is similar to extended access except extend operation
     case ContinuousAccess:
+    case ExtendedAccess:
       return m_channelNumber == channelNumber;
     case AlternatingAccess:
       return (channelNumber == CCH) || (m_channelNumber == channelNumber);
@@ -173,7 +174,7 @@ ChannelScheduler::IsAccessAssigned (uint32_t channelNumber) const
       NS_ASSERT (m_channelNumber == 0);
       return false;
     default:
-      NS_FATAL_ERROR ("we not support this ChannelAccess now");
+      NS_FATAL_ERROR ("we could not get here");
       return false;
     }
 }
@@ -235,18 +236,18 @@ ChannelScheduler::AssignAlternatingAccess (uint32_t channelNumber, bool immediat
   // is remaining time, suppose we are now at 49.9999ms, and we begin
   // SCH switch operation, however at 50ms there will come another switch
   // operation, this could cause assert by the phy class.
-  if ((immediate || m_coordinator->IsSchiNow ())
+  if ((immediate || m_coordinator->IsSchIntervalNow ())
       && (m_coordinator->NeedTimeToGuardiNow () <= m_coordinator->GetMaxSwitchTime ()))
     {
-      m_manager->SetState (cn, ChannelManager::ChannelActive);
-      m_manager->SetState (CCH, ChannelManager::ChannelInactive);
+      m_manager->SetState (cn, ChannelManager::CHANNEL_ACTIVE);
+      m_manager->SetState (CCH, ChannelManager::CHANNEL_INACTIVE);
       m_phy->SetChannelNumber (cn);
       SwitchQueueToChannel (cn);
     }
   else
     {
-      m_manager->SetState (CCH, ChannelManager::ChannelActive);
-      m_manager->SetState (cn, ChannelManager::ChannelInactive);
+      m_manager->SetState (CCH, ChannelManager::CHANNEL_ACTIVE);
+      m_manager->SetState (cn, ChannelManager::CHANNEL_INACTIVE);
     }
   m_channelNumber = cn;
   m_channelAccess = AlternatingAccess;
@@ -274,13 +275,13 @@ ChannelScheduler::AssignContinuousAccess (uint32_t channelNumber, bool immediate
       return false;
     }
 
-  bool switchNow = (ChannelManager::IsCch (cn) && m_coordinator->IsCchiNow ())
-    || (ChannelManager::IsSch (cn) && m_coordinator->IsSchiNow ());
+  bool switchNow = (ChannelManager::IsCch (cn) && m_coordinator->IsCchIntervalNow ())
+    || (ChannelManager::IsSch (cn) && m_coordinator->IsSchIntervalNow ());
   if (immediate || switchNow)
     {
       m_phy->SetChannelNumber (cn);
       SwitchQueueToChannel (cn);
-      m_manager->SetState (cn, ChannelManager::ChannelActive);
+      m_manager->SetState (cn, ChannelManager::CHANNEL_ACTIVE);
       m_channelNumber = cn;
       m_channelAccess = ContinuousAccess;
     }
@@ -310,8 +311,8 @@ ChannelScheduler::AssignExtendedAccess (uint32_t channelNumber, uint32_t extends
       return false;
     }
 
-  bool switchNow = (ChannelManager::IsCch (cn) && m_coordinator->IsCchiNow ())
-    || (ChannelManager::IsSch (cn) && m_coordinator->IsSchiNow ());
+  bool switchNow = (ChannelManager::IsCch (cn) && m_coordinator->IsCchIntervalNow ())
+    || (ChannelManager::IsSch (cn) && m_coordinator->IsSchIntervalNow ());
   Time wait = ChannelManager::IsCch (cn) ? m_coordinator->NeedTimeToCchiNow () : m_coordinator->NeedTimeToSchiNow ();
 
   if (immediate || switchNow)
@@ -319,7 +320,7 @@ ChannelScheduler::AssignExtendedAccess (uint32_t channelNumber, uint32_t extends
       m_extend = extends;
       m_phy->SetChannelNumber (cn);
       SwitchQueueToChannel (cn);
-      m_manager->SetState (cn, ChannelManager::ChannelActive);
+      m_manager->SetState (cn, ChannelManager::CHANNEL_ACTIVE);
       m_channelNumber = cn;
       m_channelAccess = ExtendedAccess;
 
@@ -352,17 +353,19 @@ ChannelScheduler::Release (uint32_t channelNumber)
 
   switch (m_channelAccess)
     {
+    // continuous access is similar to extended access except extend operation
+    // here we can release continuous access as releasing extended access
     case ContinuousAccess:
     case ExtendedAccess:
-      m_manager->SetState (m_channelNumber, ChannelManager::ChannelDead);
+      m_manager->SetState (m_channelNumber, ChannelManager::CHANNEL_DEAD);
       m_phy->SetChannelNumber (CCH);
       m_extend = 0;
       m_waitEvent.Cancel ();
       m_extendEvent.Cancel ();
       break;
     case AlternatingAccess:
-      m_manager->SetState (CCH, ChannelManager::ChannelDead);
-      m_manager->SetState (m_channelNumber, ChannelManager::ChannelDead);
+      m_manager->SetState (CCH, ChannelManager::CHANNEL_DEAD);
+      m_manager->SetState (m_channelNumber, ChannelManager::CHANNEL_DEAD);
       m_phy->SetChannelNumber (CCH);
       // since channel switch will not flush queue automatically now,
       // so we need flush queues by hand
@@ -375,6 +378,7 @@ ChannelScheduler::Release (uint32_t channelNumber)
       m_coordinator->Stop ();
       break;
     case NoAccess:
+      break;
     default:
       NS_FATAL_ERROR ("cannot get here");
       break;
@@ -406,8 +410,8 @@ ChannelScheduler::NotifyCchStartNow (Time duration)
 {
   NS_LOG_FUNCTION (this << duration);
   NS_ASSERT (m_channelAccess == AlternatingAccess);
-  m_manager->SetState (m_channelNumber, ChannelManager::ChannelInactive);
-  m_manager->SetState (CCH, ChannelManager::ChannelActive);
+  m_manager->SetState (m_channelNumber, ChannelManager::CHANNEL_INACTIVE);
+  m_manager->SetState (CCH, ChannelManager::CHANNEL_ACTIVE);
   QueueStartAccess ();
 }
 void
@@ -415,8 +419,8 @@ ChannelScheduler::NotifySchStartNow (Time duration)
 {
   NS_LOG_FUNCTION (this << duration);
   NS_ASSERT (m_channelAccess == AlternatingAccess);
-  m_manager->SetState (m_channelNumber, ChannelManager::ChannelActive);
-  m_manager->SetState (CCH, ChannelManager::ChannelInactive);
+  m_manager->SetState (m_channelNumber, ChannelManager::CHANNEL_ACTIVE);
+  m_manager->SetState (CCH, ChannelManager::CHANNEL_INACTIVE);
   QueueStartAccess ();
 }
 
@@ -436,7 +440,7 @@ ChannelScheduler::NotifyGuardStartNow (Time duration, bool cchi)
 
   if (cchi)
     {
-      NS_ASSERT (m_coordinator->IsCchiNow () && m_coordinator->IsGuardiNow ());
+      NS_ASSERT (m_coordinator->IsCchIntervalNow () && m_coordinator->IsGuardIntervalNow ());
       m_phy->SetChannelNumber (CCH);
       SwitchQueueToChannel (CCH);
     }

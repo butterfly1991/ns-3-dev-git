@@ -168,6 +168,11 @@ public:
 protected:
   virtual void DoInitialize ();
   virtual void DoDispose ();
+  /**
+   * This method will call mac low object to sent packets.
+   * And in wave module, this method will be overrided to avoid
+   * sending packets at the guard interval
+   */
   virtual void StartTransmission (Ptr<const Packet> packet,
                                   const WifiMacHeader* hdr,
                                   MacLowTransmissionParameters params,

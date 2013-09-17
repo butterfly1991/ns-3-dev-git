@@ -545,7 +545,7 @@ MacLow::GetBssid (void) const
   return m_bssid;
 }
 bool
-MacLow::GetPromisc (void) const
+MacLow::IsPromisc (void) const
 {
   return m_promisc;
 }

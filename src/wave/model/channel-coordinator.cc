@@ -92,7 +92,7 @@ ChannelCoordinator::SetCchInterval (Time cchInterval)
   m_cchInterval = cchInterval;
 }
 Time
-ChannelCoordinator::GetCchInterval ()
+ChannelCoordinator::GetCchInterval (void) const
 {
   return m_cchInterval;
 }
@@ -102,7 +102,7 @@ ChannelCoordinator::SetSchInterval (Time schInterval)
   m_schInterval = schInterval;
 }
 Time
-ChannelCoordinator::GetSchInterval ()
+ChannelCoordinator::GetSchInterval (void) const
 {
   return m_schInterval;
 }
@@ -112,7 +112,7 @@ ChannelCoordinator::SetSyncTolerance (Time syncTolerance)
   m_syncTolerance = syncTolerance;
 }
 Time
-ChannelCoordinator::GetSyncTolerance ()
+ChannelCoordinator::GetSyncTolerance (void) const
 {
   return m_syncTolerance;
 }
@@ -122,83 +122,121 @@ ChannelCoordinator::SetMaxSwitchTime (Time maxSwitchTime)
   m_maxSwitchTime = maxSwitchTime;
 }
 Time
-ChannelCoordinator::GetMaxSwitchTime ()
+ChannelCoordinator::GetMaxSwitchTime (void) const
 {
   return m_maxSwitchTime;
 }
 Time
-ChannelCoordinator::GetSyncInterval ()
+ChannelCoordinator::GetSyncInterval (void) const
 {
   return GetCchInterval () + GetSchInterval ();
 }
 Time
-ChannelCoordinator::GetGuardInterval ()
+ChannelCoordinator::GetGuardInterval (void) const
 {
   return GetSyncTolerance () + GetMaxSwitchTime ();
 }
 Time
-ChannelCoordinator::GetDefaultCchInterval ()
+ChannelCoordinator::GetDefaultCchInterval (void)
 {
   return MilliSeconds (DEFAULT_CCH_INTERVAL);
 }
 Time
-ChannelCoordinator::GetDefaultSchInterval ()
+ChannelCoordinator::GetDefaultSchInterval (void)
 {
   return MilliSeconds (DEFAULT_SCH_INTERVAL);
 }
 Time
-ChannelCoordinator::GetDefaultSyncTolerance ()
+ChannelCoordinator::GetDefaultSyncTolerance (void)
 {
   return MilliSeconds (DEFAULT_SYNC_TOLERANCE);
 }
 Time
-ChannelCoordinator::GetDefaultMaxSwitchTime ()
+ChannelCoordinator::GetDefaultMaxSwitchTime (void)
 {
   return MilliSeconds (DEFAULT_MAC_SWITCH_TIME);
 }
+ Time
+ChannelCoordinator::GetSchSlot (void) const
+{
+  return m_schInterval - (m_syncTolerance + m_maxSwitchTime);
+}
+ Time
+ChannelCoordinator::GetCchSlot (void) const
+{
+  return m_cchInterval - (m_syncTolerance + m_maxSwitchTime);
+}
+ bool
+ChannelCoordinator::IsSchIntervalNow (void) const
+{
+ return IsSchIntervalAfter (Seconds (0));
+}
 bool
-ChannelCoordinator::IsCchiAfter (Time duration)
+ChannelCoordinator::IsCchIntervalAfter (Time duration) const
 {
   Time future = GetIntervalTimeAfter (duration);
   return (future < m_cchInterval);
 }
-bool
-ChannelCoordinator::IsSchiAfter (Time duration)
+ bool
+ChannelCoordinator::IsCchIntervalNow () const
 {
-  return !IsCchiAfter (duration);
+  return IsCchIntervalAfter (Seconds (0));
+}
+bool
+ChannelCoordinator::IsSchIntervalAfter (Time duration) const
+{
+  return !IsCchIntervalAfter (duration);
+}
+ Time
+ChannelCoordinator::NeedTimeToSchiNow (void) const
+{
+  return NeedTimeToSchiAfter (Seconds (0));
 }
 Time
-ChannelCoordinator::NeedTimeToSchiAfter (Time duration)
+ChannelCoordinator::NeedTimeToSchiAfter (Time duration) const
 {
-  if (IsSchiAfter (duration))
+  if (IsSchIntervalAfter (duration))
     {
       return Time (0);
     }
   return GetCchInterval () - GetIntervalTimeAfter (duration);
 }
-Time
-ChannelCoordinator::NeedTimeToCchiAfter (Time duration)
+ Time
+ChannelCoordinator::NeedTimeToCchiNow (void) const
 {
-  if (IsCchiAfter (duration))
+  return NeedTimeToCchiAfter (Seconds (0));
+}
+Time
+ChannelCoordinator::NeedTimeToCchiAfter (Time duration) const
+{
+  if (IsCchIntervalAfter (duration))
     {
       return Time (0);
     }
   return GetSyncInterval () - GetIntervalTimeAfter (duration);
 }
-
-Time
-ChannelCoordinator::NeedTimeToGuardiAfter (Time duration)
+ Time
+ChannelCoordinator::NeedTimeToGuardiNow (void) const
 {
-  if (IsCchiAfter (duration))
+  return NeedTimeToGuardiAfter (Seconds (0));
+}
+Time
+ChannelCoordinator::NeedTimeToGuardiAfter (Time duration) const
+{
+  if (IsCchIntervalAfter (duration))
     {
       return (GetCchInterval () - GetIntervalTimeAfter (duration));
     }
 
   return (GetSyncInterval () - GetIntervalTimeAfter (duration));
 }
-
+ bool
+ChannelCoordinator::IsSyncToleranceNow (void) const
+{
+  return IsSyncToleranceAfter (Seconds (0));
+}
 bool
-ChannelCoordinator::IsSyncToleranceAfter (Time duration)
+ChannelCoordinator::IsSyncToleranceAfter (Time duration) const
 {
   Time future = GetIntervalTimeAfter (duration);
   // interval is either in CchInterval or SchInterval
@@ -215,8 +253,13 @@ ChannelCoordinator::IsSyncToleranceAfter (Time duration)
     }
   return false;
 }
+ bool
+ChannelCoordinator::IsMaxSwitchTimeNow (void) const
+ {
+   return IsMaxSwitchTimeAfter (Seconds (0));
+ }
 bool
-ChannelCoordinator::IsMaxSwitchTimeAfter (Time duration)
+ChannelCoordinator::IsMaxSwitchTimeAfter (Time duration) const
 {
   Time future = GetIntervalTimeAfter (duration);
   // interval is either in CchInterval or SchInterval
@@ -229,17 +272,26 @@ ChannelCoordinator::IsMaxSwitchTimeAfter (Time duration)
     }
   return false;
 }
+ bool
+ChannelCoordinator::IsGuardIntervalNow (void) const
+{
+  return IsGuardIntervalAfter (Seconds (0));
+}
 bool
-ChannelCoordinator::IsGuardiAfter (Time duration)
+ChannelCoordinator::IsGuardIntervalAfter (Time duration) const
 {
   Time future = GetIntervalTimeAfter (duration);
   // interval is either in CchInterval or SchInterval
   Time interval = future < m_cchInterval ? future : future - m_cchInterval;
   return interval < GetGuardInterval ();
 }
-
 Time
-ChannelCoordinator::GetIntervalTimeAfter (Time duration)
+ChannelCoordinator::GetIntervalTimeNow (void) const
+{
+  return GetIntervalTimeAfter (Seconds (0));
+}
+Time
+ChannelCoordinator::GetIntervalTimeAfter (Time duration) const
 {
   Time future = Now () + duration;
   Time sync = GetSyncInterval ();
@@ -290,7 +342,7 @@ ChannelCoordinator::Stop ()
   m_guardCount = 0;
 }
 bool
-ChannelCoordinator::IsStopped ()
+ChannelCoordinator::IsStopped () const
 {
   return m_guardCount == 0;
 }
