@@ -81,9 +81,9 @@ ChannelCoordinationTestCase::TestIntervalAfter (Time duration, bool cchi, bool s
                          "check whether is SCH interval after duration = " << after << "ms");
   NS_TEST_EXPECT_MSG_EQ (m_coordinator->IsGuardInterval (duration), guardi, "now is " << now  << "ms "
                          "check whether is Guard interval after duration = " << after << "ms");
-  NS_TEST_EXPECT_MSG_EQ (m_coordinator->IsSyncTolerance (duration), synci, "now is " << now  << "ms "
+  NS_TEST_EXPECT_MSG_EQ (m_coordinator->IsInSyncTolerance (duration), synci, "now is " << now  << "ms "
                          "check whether is SyncTolerance interval after duration = " << after << "ms");
-  NS_TEST_EXPECT_MSG_EQ (m_coordinator->IsMaxSwitchTime (duration), switchi, "now is " << now  << "ms "
+  NS_TEST_EXPECT_MSG_EQ (m_coordinator->IsInMaxSwitchTime (duration), switchi, "now is " << now  << "ms "
                          "check whether is MacChSwitch interval after duration = " << after << "ms");
 }
 void
