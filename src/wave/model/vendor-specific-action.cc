@@ -72,10 +72,11 @@ OrganizationIdentifier::~OrganizationIdentifier (void)
 
 }
 
-const uint8_t *
-OrganizationIdentifier::PeekData (void) const
+uint8_t
+OrganizationIdentifier::GetManagementId (void) const
 {
-  return (const uint8_t *)this->m_oi;
+  NS_ASSERT (m_type == OUI36);
+  return (m_oi[4] & 0x0f);
 }
 
 bool
@@ -129,10 +130,8 @@ OrganizationIdentifier::Deserialize (Buffer::Iterator start)
   start.Read (m_oi,  3);
   for (std::vector<OrganizationIdentifier>::iterator  i = OrganizationIdentifiers.begin (); i != OrganizationIdentifiers.end (); ++i)
     {
-      const OrganizationIdentifier & m = *i;
-      const uint8_t * data = m.PeekData ();
-      if ((m.GetType () == OUI24)
-          && (std::memcmp (data, m_oi, 3) == 0 ))
+      if ((i->m_type == OUI24)
+          && (std::memcmp (i->m_oi, m_oi, 3) == 0 ))
         {
           m_type = OUI24;
           return 3;
@@ -143,13 +142,11 @@ OrganizationIdentifier::Deserialize (Buffer::Iterator start)
   start.Read (m_oi + 3,  2);
   for (std::vector<OrganizationIdentifier>::iterator  i = OrganizationIdentifiers.begin (); i != OrganizationIdentifiers.end (); ++i)
     {
-      const OrganizationIdentifier & m = *i;
-      const uint8_t * data = m.PeekData ();
-      if ((m.GetType () == OUI36)
-          && (std::memcmp (data, m_oi, 4) == 0 ))
+      if ((i->m_type == OUI36)
+          && (std::memcmp (i->m_oi, m_oi, 4) == 0 ))
         {
           // OUI36 first check 4 bytes, then check half of the 5th byte
-          if ((data[4] & 0xf0) == (m_oi[4] & 0xf0))
+          if ((i->m_oi[4] & 0xf0) == (m_oi[4] & 0xf0))
             {
               m_type = OUI36;
               return 5;

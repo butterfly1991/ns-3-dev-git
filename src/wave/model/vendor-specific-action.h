@@ -52,10 +52,6 @@ public:
   OrganizationIdentifier& operator= (const OrganizationIdentifier& oi);
   virtual ~OrganizationIdentifier (void);
 
-  const uint8_t * PeekData (void) const;
-
-  bool IsNull (void) const;
-
   enum OrganizationIdentifierType
   {
     OUI24 = 3,  // 3 bytes
@@ -63,8 +59,16 @@ public:
     Unknown = 0,
   };
 
-  void SetType (enum OrganizationIdentifierType type);
+  /**
+   * \returns last 4 bits when OrganizationIdentifier is OUI36
+   */
+  uint8_t GetManagementId (void) const;
+  /**
+   * \returns whether current OrganizationIdentifier is initial state
+   */
+  bool IsNull (void) const;
 
+  void SetType (enum OrganizationIdentifierType type);
   enum OrganizationIdentifierType GetType () const;
 
   // below methods will be called by VendorSpecificActionHeader

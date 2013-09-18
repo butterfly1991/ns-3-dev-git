@@ -161,7 +161,7 @@ VsaRepeater::DoSendVsaByInterval (uint32_t interval, uint32_t channel,
   // send packets immediately.
   if (interval == 1)
     {
-      Time wait = coordinator->NeedTimeToSchiNow ();
+      Time wait = coordinator->NeedTimeToSchInterval ();
       if (wait.GetMilliSeconds () == 0)
         {
           immediate = true;
@@ -174,7 +174,7 @@ VsaRepeater::DoSendVsaByInterval (uint32_t interval, uint32_t channel,
     }
   else if (interval == 2)
     {
-      Time wait = coordinator->NeedTimeToCchiNow ();
+      Time wait = coordinator->NeedTimeToCchInterval ();
       if (wait.GetMilliSeconds () == 0)
         {
           immediate = true;

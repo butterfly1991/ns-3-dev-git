@@ -167,63 +167,63 @@ ChannelCoordinator::GetCchSlot (void) const
   return m_cchInterval - (m_syncTolerance + m_maxSwitchTime);
 }
  bool
-ChannelCoordinator::IsSchIntervalNow (void) const
+ChannelCoordinator::IsSchInterval (void) const
 {
- return IsSchIntervalAfter (Seconds (0));
+ return IsSchInterval (Seconds (0));
 }
 bool
-ChannelCoordinator::IsCchIntervalAfter (Time duration) const
+ChannelCoordinator::IsCchInterval (Time duration) const
 {
   Time future = GetIntervalTimeAfter (duration);
   return (future < m_cchInterval);
 }
  bool
-ChannelCoordinator::IsCchIntervalNow () const
+ChannelCoordinator::IsCchInterval () const
 {
-  return IsCchIntervalAfter (Seconds (0));
+  return IsCchInterval (Seconds (0));
 }
 bool
-ChannelCoordinator::IsSchIntervalAfter (Time duration) const
+ChannelCoordinator::IsSchInterval (Time duration) const
 {
-  return !IsCchIntervalAfter (duration);
+  return !IsCchInterval (duration);
 }
  Time
-ChannelCoordinator::NeedTimeToSchiNow (void) const
+ChannelCoordinator::NeedTimeToSchInterval (void) const
 {
-  return NeedTimeToSchiAfter (Seconds (0));
+  return NeedTimeToSchInterval (Seconds (0));
 }
 Time
-ChannelCoordinator::NeedTimeToSchiAfter (Time duration) const
+ChannelCoordinator::NeedTimeToSchInterval (Time duration) const
 {
-  if (IsSchIntervalAfter (duration))
+  if (IsSchInterval (duration))
     {
       return Time (0);
     }
   return GetCchInterval () - GetIntervalTimeAfter (duration);
 }
  Time
-ChannelCoordinator::NeedTimeToCchiNow (void) const
+ChannelCoordinator::NeedTimeToCchInterval (void) const
 {
-  return NeedTimeToCchiAfter (Seconds (0));
+  return NeedTimeToCchInterval (Seconds (0));
 }
 Time
-ChannelCoordinator::NeedTimeToCchiAfter (Time duration) const
+ChannelCoordinator::NeedTimeToCchInterval (Time duration) const
 {
-  if (IsCchIntervalAfter (duration))
+  if (IsCchInterval (duration))
     {
       return Time (0);
     }
   return GetSyncInterval () - GetIntervalTimeAfter (duration);
 }
  Time
-ChannelCoordinator::NeedTimeToGuardiNow (void) const
+ChannelCoordinator::NeedTimeToGuardInterval (void) const
 {
-  return NeedTimeToGuardiAfter (Seconds (0));
+  return NeedTimeToGuardInterval (Seconds (0));
 }
 Time
-ChannelCoordinator::NeedTimeToGuardiAfter (Time duration) const
+ChannelCoordinator::NeedTimeToGuardInterval (Time duration) const
 {
-  if (IsCchIntervalAfter (duration))
+  if (IsCchInterval (duration))
     {
       return (GetCchInterval () - GetIntervalTimeAfter (duration));
     }
@@ -231,12 +231,12 @@ ChannelCoordinator::NeedTimeToGuardiAfter (Time duration) const
   return (GetSyncInterval () - GetIntervalTimeAfter (duration));
 }
  bool
-ChannelCoordinator::IsSyncToleranceNow (void) const
+ChannelCoordinator::IsSyncTolerance (void) const
 {
-  return IsSyncToleranceAfter (Seconds (0));
+  return IsSyncTolerance (Seconds (0));
 }
 bool
-ChannelCoordinator::IsSyncToleranceAfter (Time duration) const
+ChannelCoordinator::IsSyncTolerance (Time duration) const
 {
   Time future = GetIntervalTimeAfter (duration);
   // interval is either in CchInterval or SchInterval
@@ -254,12 +254,12 @@ ChannelCoordinator::IsSyncToleranceAfter (Time duration) const
   return false;
 }
  bool
-ChannelCoordinator::IsMaxSwitchTimeNow (void) const
+ChannelCoordinator::IsMaxSwitchTime (void) const
  {
-   return IsMaxSwitchTimeAfter (Seconds (0));
+   return IsMaxSwitchTime (Seconds (0));
  }
 bool
-ChannelCoordinator::IsMaxSwitchTimeAfter (Time duration) const
+ChannelCoordinator::IsMaxSwitchTime (Time duration) const
 {
   Time future = GetIntervalTimeAfter (duration);
   // interval is either in CchInterval or SchInterval
@@ -273,12 +273,12 @@ ChannelCoordinator::IsMaxSwitchTimeAfter (Time duration) const
   return false;
 }
  bool
-ChannelCoordinator::IsGuardIntervalNow (void) const
+ChannelCoordinator::IsGuardInterval (void) const
 {
-  return IsGuardIntervalAfter (Seconds (0));
+  return IsGuardInterval (Seconds (0));
 }
 bool
-ChannelCoordinator::IsGuardIntervalAfter (Time duration) const
+ChannelCoordinator::IsGuardInterval (Time duration) const
 {
   Time future = GetIntervalTimeAfter (duration);
   // interval is either in CchInterval or SchInterval

@@ -398,9 +398,9 @@ MultipleChannelExperiment::SendIpPackets (Ptr<WaveNetDevice> sender)
     }
 
   Ptr<ChannelCoordinator> coordinator = sender->GetChannelCoordinator ();
-  if (coordinator->IsCchIntervalNow ())
+  if (coordinator->IsCchInterval ())
     {
-      if (coordinator->IsGuardIntervalNow ())
+      if (coordinator->IsGuardInterval ())
         {
           sendNonSafety.sendInCguardi++;
         }
@@ -411,7 +411,7 @@ MultipleChannelExperiment::SendIpPackets (Ptr<WaveNetDevice> sender)
     }
   else
     {
-      if (coordinator->IsGuardIntervalNow ())
+      if (coordinator->IsGuardInterval ())
         {
           sendNonSafety.sendInSguardi++;
         }
@@ -444,9 +444,9 @@ MultipleChannelExperiment::SendWsmpPackets (Ptr<WaveNetDevice> sender, uint32_t 
     }
 
   Ptr<ChannelCoordinator> coordinator = sender->GetChannelCoordinator ();
-  if (coordinator->IsCchIntervalNow ())
+  if (coordinator->IsCchInterval ())
     {
-      if (coordinator->IsGuardIntervalNow ())
+      if (coordinator->IsGuardInterval ())
         {
           sendSafety.sendInCguardi++;
         }
@@ -458,7 +458,7 @@ MultipleChannelExperiment::SendWsmpPackets (Ptr<WaveNetDevice> sender, uint32_t 
     }
   else
     {
-      if (coordinator->IsGuardIntervalNow ())
+      if (coordinator->IsGuardInterval ())
         {
           sendSafety.sendInSguardi++;
         }
@@ -536,9 +536,9 @@ MultipleChannelExperiment::ConfigurationC ()
             {
               Time t = Seconds (rngSafety->GetValue (time, time + 1));
               // if the send time is not at CCHI, we will calculate a new time
-              if (!coordinator->IsCchIntervalAfter (t))
+              if (!coordinator->IsCchInterval (t))
                 {
-                  t = t + coordinator->NeedTimeToCchiAfter (t)
+                  t = t + coordinator->NeedTimeToCchInterval (t)
                     +  MicroSeconds (rngOther->GetInteger (0, coordinator->GetCchInterval ().GetMicroSeconds () - 1));
                 }
               Simulator::Schedule (t, &MultipleChannelExperiment::SendWsmpPackets, this, sender, CCH);
@@ -548,10 +548,10 @@ MultipleChannelExperiment::ConfigurationC ()
 
               Time t = Seconds (rngNonSafety->GetValue (time, time + 1));
               // if the send time is not at CCHI, we will calculate a new time
-              if (!coordinator->IsSchIntervalAfter (t))
+              if (!coordinator->IsSchInterval (t))
                 {
                   t =  t
-                    + coordinator->NeedTimeToSchiAfter (t)
+                    + coordinator->NeedTimeToSchInterval (t)
                     +  MicroSeconds (rngOther->GetInteger (0, coordinator->GetSchInterval ().GetMicroSeconds () - 1));
                 }
               Simulator::Schedule (t, &MultipleChannelExperiment::SendIpPackets, this, sender);
@@ -577,9 +577,9 @@ MultipleChannelExperiment::ConfiguartionD ()
           for (uint32_t sends = 0; sends != frequencySafety; ++sends)
             {
               Time t = Seconds (rngSafety->GetValue (time, time + 1));
-              if (!coordinator->IsSchIntervalAfter (t))
+              if (!coordinator->IsSchInterval (t))
                 {
-                  t =  t + coordinator->NeedTimeToSchiAfter (t)
+                  t =  t + coordinator->NeedTimeToSchInterval (t)
                     +  MicroSeconds (rngOther->GetInteger (0, coordinator->GetSchInterval ().GetMicroSeconds () - 1));
 
                 }
@@ -590,9 +590,9 @@ MultipleChannelExperiment::ConfiguartionD ()
 
               Time t = Seconds (rngNonSafety->GetValue (time, time + 1));
               // if the send time is not at CCHI, we will calculate a new time
-              if (!coordinator->IsCchIntervalAfter (t))
+              if (!coordinator->IsCchInterval (t))
                 {
-                  t =  t + coordinator->NeedTimeToCchiAfter (t)
+                  t =  t + coordinator->NeedTimeToCchInterval (t)
                     +  MicroSeconds (rngOther->GetInteger (0, coordinator->GetCchInterval ().GetMicroSeconds () - 1));
 
                 }

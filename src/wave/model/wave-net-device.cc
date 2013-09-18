@@ -169,7 +169,7 @@ WaveNetDevice::DoReceiveVsc (const OrganizationIdentifier &oi, Ptr<const Packet>
     {
       return true; // return ok but not forward up to higher layer
     }
-  uint32_t managementId = oi.PeekData ()[4] | 0x0f;
+  uint32_t managementId = oi.GetManagementId ();
   if (!m_waveVscReceived.IsNull ())
     {
       bool succeed = false;
@@ -490,7 +490,7 @@ WaveNetDevice::WaveForwardUp (Ptr<Packet> packet, Mac48Address from, Mac48Addres
    * be dropped as they haven't been received correctly.
    */
   if (m_channelScheduler->GetAccess () == ChannelScheduler::AlternatingAccess
-		  && m_channelCoordinator->IsGuardIntervalNow ())
+		  && m_channelCoordinator->IsGuardInterval ())
     {
       return;
     }

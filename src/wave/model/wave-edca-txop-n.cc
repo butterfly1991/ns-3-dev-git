@@ -98,7 +98,7 @@ WaveEdcaTxopN::StartTransmission (Ptr<const Packet> packet,
     }
 
   Time transmissionTime = Low ()->CalculateTransmissionTime (packet, hdr, params);
-  Time remainingTime = m_scheduler->GetChannelCoodinator ()->NeedTimeToGuardiNow ();
+  Time remainingTime = m_scheduler->GetChannelCoodinator ()->NeedTimeToGuardInterval ();
   Time t = Now ();
 
   if (transmissionTime > remainingTime)

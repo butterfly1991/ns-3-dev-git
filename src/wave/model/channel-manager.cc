@@ -38,15 +38,15 @@ ChannelManager::GetTypeId (void)
 
 ChannelManager::ChannelManager ()
 {
-  WaveChannel c = {0, DEFAULT_CCH_OPERATING_CLASS, true, OFDM_6M, 4, CHANNEL_DEAD};
-  for (uint32_t channelIndex = 0; channelIndex != CHANNELS_OF_WAVE; ++channelIndex)
-    {
-      WaveChannel *channel = new WaveChannel;
-      *channel = c;
-      channel->channelNumber = SCH1 + 2 * channelIndex;
-      m_channels.push_back (channel);
-    }
+  m_channels.push_back (new WaveChannel(SCH1));
+  m_channels.push_back (new WaveChannel(SCH2));
+  m_channels.push_back (new WaveChannel(SCH3));
+  m_channels.push_back (new WaveChannel(CCH));
+  m_channels.push_back (new WaveChannel(SCH4));
+  m_channels.push_back (new WaveChannel(SCH5));
+  m_channels.push_back (new WaveChannel(SCH6));
 }
+
 ChannelManager::~ChannelManager ()
 {
   std::vector<WaveChannel *>::iterator i;

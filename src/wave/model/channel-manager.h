@@ -155,6 +155,16 @@ private:
     uint32_t txPowerLevel;
 
     enum ChannelState state;
+
+    WaveChannel (uint32_t channel)
+      : channelNumber (channel),
+        operatingClass (DEFAULT_CCH_OPERATING_CLASS),
+        adapter (true),
+        dataRate (OFDM_6M),
+        txPowerLevel (4),
+        state (CHANNEL_DEAD)
+      {
+      }
   };
   std::vector<WaveChannel *> m_channels;
 };

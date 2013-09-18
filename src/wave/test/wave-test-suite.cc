@@ -75,15 +75,15 @@ ChannelCoordinationTestCase::TestIntervalAfter (Time duration, bool cchi, bool s
   int64_t now = Now ().GetMilliSeconds ();
   int64_t after = duration.GetMilliSeconds ();
 
-  NS_TEST_EXPECT_MSG_EQ (m_coordinator->IsCchIntervalAfter (duration), cchi, "now is " << now  << "ms "
+  NS_TEST_EXPECT_MSG_EQ (m_coordinator->IsCchInterval (duration), cchi, "now is " << now  << "ms "
                          "check whether is CCH interval after duration = " << after << "ms");
-  NS_TEST_EXPECT_MSG_EQ (m_coordinator->IsSchIntervalAfter (duration), schi, "now is " << now  << "ms "
+  NS_TEST_EXPECT_MSG_EQ (m_coordinator->IsSchInterval (duration), schi, "now is " << now  << "ms "
                          "check whether is SCH interval after duration = " << after << "ms");
-  NS_TEST_EXPECT_MSG_EQ (m_coordinator->IsGuardIntervalAfter (duration), guardi, "now is " << now  << "ms "
+  NS_TEST_EXPECT_MSG_EQ (m_coordinator->IsGuardInterval (duration), guardi, "now is " << now  << "ms "
                          "check whether is Guard interval after duration = " << after << "ms");
-  NS_TEST_EXPECT_MSG_EQ (m_coordinator->IsSyncToleranceAfter (duration), synci, "now is " << now  << "ms "
+  NS_TEST_EXPECT_MSG_EQ (m_coordinator->IsSyncTolerance (duration), synci, "now is " << now  << "ms "
                          "check whether is SyncTolerance interval after duration = " << after << "ms");
-  NS_TEST_EXPECT_MSG_EQ (m_coordinator->IsMaxSwitchTimeAfter (duration), switchi, "now is " << now  << "ms "
+  NS_TEST_EXPECT_MSG_EQ (m_coordinator->IsMaxSwitchTime (duration), switchi, "now is " << now  << "ms "
                          "check whether is MacChSwitch interval after duration = " << after << "ms");
 }
 void
@@ -652,7 +652,7 @@ AlternatingAccessTestCase::Send ()
   Ptr<Packet> p = Create<Packet> (1000);
   TxInfo info;
   Ptr<ChannelCoordinator> coordinator = m_sender->GetChannelCoordinator ();
-  if (coordinator->IsCchIntervalNow ())
+  if (coordinator->IsCchInterval ())
     {
 	  info = TxInfo (CCH);
       p->AddByteTag (FlowIdTag (CCHI));
@@ -676,17 +676,17 @@ AlternatingAccessTestCase::Receive (Ptr<NetDevice> dev, Ptr<const Packet> pkt, u
   // only receive packet for the fact that devices may not be precisely aligned in time.
   // However we assume the device in simulation is precisely aligned in time which means
   // devices will not send at the guard interval, so the device shall not receive any packet.
-  NS_TEST_EXPECT_MSG_EQ (coordinator->IsGuardIntervalNow (), false, "we cannot receive any packet at guard interval");
+  NS_TEST_EXPECT_MSG_EQ (coordinator->IsGuardInterval (), false, "we cannot receive any packet at guard interval");
   m_receives++;
 
   FlowIdTag tag;
   if (pkt->FindFirstMatchingByteTag (tag))
     {
-      if (coordinator->IsCchIntervalNow ())
+      if (coordinator->IsCchInterval ())
         {
           NS_TEST_EXPECT_MSG_EQ (tag.GetFlowId (), CCHI, "receive a packet in CCH interval which is sent in SCH interval");
         }
-      else if (coordinator->IsSchIntervalNow ())
+      else if (coordinator->IsSchInterval ())
         {
           NS_TEST_EXPECT_MSG_EQ (tag.GetFlowId (), SCHI, "receive a packet in SCH interval which is sent in CCH interval");
         }
@@ -706,15 +706,15 @@ AlternatingAccessTestCase::ReceiveInCch (Ptr<NetDevice> dev, Ptr<const Packet> p
   // actually we can receive packet at the guard interval of CCHI when channel access is ContinuoisAccess,
   // but since here is only one sender with AlternatingAccess which will not send packets at guard interval,
   // so here receive with CCH ContinuousAccess should not receive packets at guard interval.
-  NS_TEST_EXPECT_MSG_EQ (coordinator->IsGuardIntervalNow (), false,"we cannot receive any packet at guard interval");
+  NS_TEST_EXPECT_MSG_EQ (coordinator->IsGuardInterval (), false,"we cannot receive any packet at guard interval");
 
-  NS_TEST_EXPECT_MSG_EQ (coordinator->IsSchIntervalNow (), false, "we cannot receive any packet at SCH interval");
+  NS_TEST_EXPECT_MSG_EQ (coordinator->IsSchInterval (), false, "we cannot receive any packet at SCH interval");
   m_cchReceives++;
 
   FlowIdTag tag;
   if (pkt->FindFirstMatchingByteTag (tag))
     {
-      if (coordinator->IsCchIntervalNow ())
+      if (coordinator->IsCchInterval ())
         {
           NS_TEST_EXPECT_MSG_EQ (tag.GetFlowId (), CCHI, "receive a packet in CCH interval which is sent in SCH interval");
         }
@@ -729,16 +729,16 @@ AlternatingAccessTestCase::ReceiveInSch (Ptr<NetDevice> dev, Ptr<const Packet> p
   // actually we can receive packet at the guard interval of SCHI when channel access is ContinuoisAccess,
   // but since here is only one sender with AlternatingAccess which will not send packets at guard interval,
   // so here receive with SCH1 ContinuousAccess should not receive packets at guard interval.
-  NS_TEST_EXPECT_MSG_EQ (coordinator->IsGuardIntervalNow (), false,"we cannot receive any packet at guard interval");
+  NS_TEST_EXPECT_MSG_EQ (coordinator->IsGuardInterval (), false,"we cannot receive any packet at guard interval");
 
-  NS_TEST_EXPECT_MSG_EQ (coordinator->IsCchIntervalNow (), false, "we cannot receive any packet at CCH interval");
+  NS_TEST_EXPECT_MSG_EQ (coordinator->IsCchInterval (), false, "we cannot receive any packet at CCH interval");
 
   m_schReceives++;
 
   FlowIdTag tag;
   if (pkt->FindFirstMatchingByteTag (tag))
     {
-      if (coordinator->IsSchIntervalNow ())
+      if (coordinator->IsSchInterval ())
         {
           NS_TEST_EXPECT_MSG_EQ (tag.GetFlowId (), SCHI, "receive a packet in SCH interval which is sent in CCH interval");
         }

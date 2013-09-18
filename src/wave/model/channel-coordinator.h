@@ -122,25 +122,26 @@ public:
   Time GetMaxSwitchTime (void) const;
   Time GetGuardInterval (void) const;
 
-  bool IsSchIntervalNow (void) const;
-  bool IsCchIntervalNow (void) const;
-  bool IsSchIntervalAfter (Time duration) const;
-  bool IsCchIntervalAfter (Time duration) const;
-  bool IsGuardIntervalNow (void) const;
-  bool IsGuardIntervalAfter (Time duration) const;
-  bool IsSyncToleranceNow (void) const;
-  bool IsSyncToleranceAfter (Time duration) const;
+  bool IsSchInterval (void) const;
+  bool IsSchInterval (Time duration) const;
+
+  bool IsCchInterval (void) const;
+  bool IsCchInterval (Time duration) const;
+  bool IsGuardInterval (void) const;
+  bool IsGuardInterval (Time duration) const;
+  bool IsSyncTolerance (void) const;
+  bool IsSyncTolerance (Time duration) const;
   // although real channel switch time of PHY is less than MaxSwitchTime;
   // this method will return true if the time is in MaxSwitchTime.
-  bool IsMaxSwitchTimeNow (void) const;
-  bool IsMaxSwitchTimeAfter (Time duration) const;
+  bool IsMaxSwitchTime (void) const;
+  bool IsMaxSwitchTime (Time duration) const;
 
-  Time NeedTimeToSchiNow (void) const;
-  Time NeedTimeToSchiAfter (Time duration) const;
-  Time NeedTimeToCchiNow (void) const;
-  Time NeedTimeToCchiAfter (Time duration) const;
-  Time NeedTimeToGuardiNow (void) const;
-  Time NeedTimeToGuardiAfter (Time duration) const;
+  Time NeedTimeToSchInterval (void) const;
+  Time NeedTimeToSchInterval (Time duration) const;
+  Time NeedTimeToCchInterval (void) const;
+  Time NeedTimeToCchInterval (Time duration) const;
+  Time NeedTimeToGuardInterval (void) const;
+  Time NeedTimeToGuardInterval (Time duration) const;
 
   /**
    *  return the time in a Sync Interval

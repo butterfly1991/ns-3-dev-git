@@ -236,8 +236,8 @@ ChannelScheduler::AssignAlternatingAccess (uint32_t channelNumber, bool immediat
   // is remaining time, suppose we are now at 49.9999ms, and we begin
   // SCH switch operation, however at 50ms there will come another switch
   // operation, this could cause assert by the phy class.
-  if ((immediate || m_coordinator->IsSchIntervalNow ())
-      && (m_coordinator->NeedTimeToGuardiNow () <= m_coordinator->GetMaxSwitchTime ()))
+  if ((immediate || m_coordinator->IsSchInterval ())
+      && (m_coordinator->NeedTimeToGuardInterval () <= m_coordinator->GetMaxSwitchTime ()))
     {
       m_manager->SetState (cn, ChannelManager::CHANNEL_ACTIVE);
       m_manager->SetState (CCH, ChannelManager::CHANNEL_INACTIVE);
@@ -275,8 +275,8 @@ ChannelScheduler::AssignContinuousAccess (uint32_t channelNumber, bool immediate
       return false;
     }
 
-  bool switchNow = (ChannelManager::IsCch (cn) && m_coordinator->IsCchIntervalNow ())
-    || (ChannelManager::IsSch (cn) && m_coordinator->IsSchIntervalNow ());
+  bool switchNow = (ChannelManager::IsCch (cn) && m_coordinator->IsCchInterval ())
+    || (ChannelManager::IsSch (cn) && m_coordinator->IsSchInterval ());
   if (immediate || switchNow)
     {
       m_phy->SetChannelNumber (cn);
@@ -287,7 +287,7 @@ ChannelScheduler::AssignContinuousAccess (uint32_t channelNumber, bool immediate
     }
   else
     {
-      Time wait = ChannelManager::IsCch (cn) ? m_coordinator->NeedTimeToCchiNow () : m_coordinator->NeedTimeToSchiNow ();
+      Time wait = ChannelManager::IsCch (cn) ? m_coordinator->NeedTimeToCchInterval () : m_coordinator->NeedTimeToSchInterval ();
       m_waitEvent = Simulator::Schedule (wait, &ChannelScheduler::AssignContinuousAccess, this, cn, false);
     }
 
@@ -311,9 +311,9 @@ ChannelScheduler::AssignExtendedAccess (uint32_t channelNumber, uint32_t extends
       return false;
     }
 
-  bool switchNow = (ChannelManager::IsCch (cn) && m_coordinator->IsCchIntervalNow ())
-    || (ChannelManager::IsSch (cn) && m_coordinator->IsSchIntervalNow ());
-  Time wait = ChannelManager::IsCch (cn) ? m_coordinator->NeedTimeToCchiNow () : m_coordinator->NeedTimeToSchiNow ();
+  bool switchNow = (ChannelManager::IsCch (cn) && m_coordinator->IsCchInterval ())
+    || (ChannelManager::IsSch (cn) && m_coordinator->IsSchInterval ());
+  Time wait = ChannelManager::IsCch (cn) ? m_coordinator->NeedTimeToCchInterval () : m_coordinator->NeedTimeToSchInterval ();
 
   if (immediate || switchNow)
     {
@@ -440,7 +440,7 @@ ChannelScheduler::NotifyGuardStartNow (Time duration, bool cchi)
 
   if (cchi)
     {
-      NS_ASSERT (m_coordinator->IsCchIntervalNow () && m_coordinator->IsGuardIntervalNow ());
+      NS_ASSERT (m_coordinator->IsCchInterval () && m_coordinator->IsGuardInterval ());
       m_phy->SetChannelNumber (CCH);
       SwitchQueueToChannel (CCH);
     }
