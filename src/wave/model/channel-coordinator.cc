@@ -174,7 +174,7 @@ ChannelCoordinator::IsSchInterval (void) const
 bool
 ChannelCoordinator::IsCchInterval (Time duration) const
 {
-  Time future = GetIntervalTimeAfter (duration);
+  Time future = GetIntervalTime (duration);
   return (future < m_cchInterval);
 }
  bool
@@ -199,7 +199,7 @@ ChannelCoordinator::NeedTimeToSchInterval (Time duration) const
     {
       return Time (0);
     }
-  return GetCchInterval () - GetIntervalTimeAfter (duration);
+  return GetCchInterval () - GetIntervalTime (duration);
 }
  Time
 ChannelCoordinator::NeedTimeToCchInterval (void) const
@@ -213,7 +213,7 @@ ChannelCoordinator::NeedTimeToCchInterval (Time duration) const
     {
       return Time (0);
     }
-  return GetSyncInterval () - GetIntervalTimeAfter (duration);
+  return GetSyncInterval () - GetIntervalTime (duration);
 }
  Time
 ChannelCoordinator::NeedTimeToGuardInterval (void) const
@@ -225,20 +225,20 @@ ChannelCoordinator::NeedTimeToGuardInterval (Time duration) const
 {
   if (IsCchInterval (duration))
     {
-      return (GetCchInterval () - GetIntervalTimeAfter (duration));
+      return (GetCchInterval () - GetIntervalTime (duration));
     }
 
-  return (GetSyncInterval () - GetIntervalTimeAfter (duration));
+  return (GetSyncInterval () - GetIntervalTime (duration));
 }
  bool
-ChannelCoordinator::IsSyncTolerance (void) const
+ChannelCoordinator::IsInSyncTolerance (void) const
 {
-  return IsSyncTolerance (Seconds (0));
+  return IsInSyncTolerance (Seconds (0));
 }
 bool
-ChannelCoordinator::IsSyncTolerance (Time duration) const
+ChannelCoordinator::IsInSyncTolerance (Time duration) const
 {
-  Time future = GetIntervalTimeAfter (duration);
+  Time future = GetIntervalTime (duration);
   // interval is either in CchInterval or SchInterval
   Time interval = future < m_cchInterval ? future : future - m_cchInterval;
   Time halfSyncTolerance = MilliSeconds (m_syncTolerance.GetMilliSeconds () / 2);
@@ -253,15 +253,15 @@ ChannelCoordinator::IsSyncTolerance (Time duration) const
     }
   return false;
 }
- bool
-ChannelCoordinator::IsMaxSwitchTime (void) const
+bool
+ChannelCoordinator::IsInMaxSwitchTime (void) const
  {
-   return IsMaxSwitchTime (Seconds (0));
+   return IsInMaxSwitchTime (Seconds (0));
  }
 bool
-ChannelCoordinator::IsMaxSwitchTime (Time duration) const
+ChannelCoordinator::IsInMaxSwitchTime (Time duration) const
 {
-  Time future = GetIntervalTimeAfter (duration);
+  Time future = GetIntervalTime (duration);
   // interval is either in CchInterval or SchInterval
   Time interval = future < m_cchInterval ? future : future - m_cchInterval;
   Time halfSyncTolerance = MilliSeconds (m_syncTolerance.GetMilliSeconds () / 2);
@@ -280,18 +280,18 @@ ChannelCoordinator::IsGuardInterval (void) const
 bool
 ChannelCoordinator::IsGuardInterval (Time duration) const
 {
-  Time future = GetIntervalTimeAfter (duration);
+  Time future = GetIntervalTime (duration);
   // interval is either in CchInterval or SchInterval
   Time interval = future < m_cchInterval ? future : future - m_cchInterval;
   return interval < GetGuardInterval ();
 }
 Time
-ChannelCoordinator::GetIntervalTimeNow (void) const
+ChannelCoordinator::GetIntervalTime (void) const
 {
-  return GetIntervalTimeAfter (Seconds (0));
+  return GetIntervalTime (Seconds (0));
 }
 Time
-ChannelCoordinator::GetIntervalTimeAfter (Time duration) const
+ChannelCoordinator::GetIntervalTime (Time duration) const
 {
   Time future = Now () + duration;
   Time sync = GetSyncInterval ();
@@ -309,7 +309,7 @@ void
 ChannelCoordinator::Start ()
 {
   NS_LOG_FUNCTION (this);
-  Time now = GetIntervalTimeNow ();
+  Time now = GetIntervalTime ();
   if (now == Time (0))
     {
       m_guardCount = 1;
