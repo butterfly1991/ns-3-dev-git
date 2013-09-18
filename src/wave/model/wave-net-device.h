@@ -87,7 +87,7 @@ struct VsaInfo
   uint32_t channelNumber;
   uint8_t repeatRate;
 
-  enum VsaSentInterval channelInterval;
+  enum VsaSentInterval sendInterval;
 
   VsaInfo (Mac48Address peer, OrganizationIdentifier identifier, uint8_t manageId, Ptr<Packet> vscPacket,
            uint32_t channel, uint8_t repeat, enum VsaSentInterval interval)
@@ -97,7 +97,7 @@ struct VsaInfo
       vsc (vscPacket),
       channelNumber (channel),
       repeatRate (repeat),
-      channelInterval (interval)
+      sendInterval (interval)
   {
 
   }

@@ -112,7 +112,7 @@ VsaRepeater::SendVsa (const VsaInfo &vsaInfo)
       // XXX REDO, it is a bad implementation to change enum to uint32_t,
       // however the compiler that not supports c++11 cannot forward declare enum
       // I need to find a better way.
-      vsa->sentInterval = vsaInfo.channelInterval;
+      vsa->sentInterval = vsaInfo.sendInterval;
       vsa->channelNumber = vsaInfo.channelNumber;
       vsa->peer = vsaInfo.peer;
       vsa->repeatRate = vsaInfo.repeatRate;
@@ -122,7 +122,7 @@ VsaRepeater::SendVsa (const VsaInfo &vsaInfo)
       vsa->repeat =  Simulator::Schedule (delay, &VsaRepeater::DoRepeat, this, vsa);
       m_vsas.push_back (vsa);
     }
-  DoSendVsaByInterval (vsaInfo.channelInterval, vsaInfo.channelNumber, p, oi, vsaInfo.peer);
+  DoSendVsaByInterval (vsaInfo.sendInterval, vsaInfo.channelNumber, p, oi, vsaInfo.peer);
 }
 
 void

@@ -147,7 +147,7 @@ WaveNetDevice::StartVsa (const VsaInfo & vsaInfo)
     }
 
   if ((m_channelScheduler->GetAccess (cn) == ChannelScheduler::AlternatingAccess)
-      && (vsaInfo.channelInterval == VSA_IN_ANYI))
+      && (vsaInfo.sendInterval == VSA_IN_ANYI))
     {
       NS_LOG_DEBUG ("AlternatingAccess cannot fulfill both channel interval");
       return false;
