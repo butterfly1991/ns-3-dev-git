@@ -63,17 +63,17 @@ const uint32_t DEFAULT_CCH_CHANNEL_NUMBER = 178;
  * data rates of a WAVE device.
  * since we only support 802.11a with 10MHz
  */
-enum DataRate
+enum WaveDataRate
 {
-  Ofdm3Mbps = 0,
-  Ofdm4_5Mbps = 1,
-  Ofdm6Mbps = 2,
-  Ofdm9Mbps = 3,
-  Ofdm12Mbps = 4,
-  Ofdm18Mbps = 5,
-  Ofdm24Mbps = 6,
-  Ofdm27Mbps = 7,
-  UnknownDataRate = 8
+  OFDM_3M  = 0,      // 3Mbps
+  OFDM_4_5M = 1,     // 4.5Mbps
+  OFDM_6M  = 2,      // 6Mbps
+  OFDM_9M  = 3,      // 9Mbps
+  OFDM_12M = 4,      // 12Mbps
+  OFDM_18M = 5,      // 28Mbps
+  OFDM_24M = 6,      // 24Mbps
+  OFDM_27M = 7,      // 27Mbps
+  UNKNOWN_DATA_RATE = 8,
 };
 /**
  * manage 7 WaveChannels and their status information.
@@ -141,7 +141,7 @@ public:
    */
   uint32_t GetOperatingClass (uint32_t channelNumber);
   bool IsAdapter (uint32_t channelNumber);
-  enum DataRate GetDataRate (uint32_t channelNumber);
+  enum WaveDataRate GetDataRate (uint32_t channelNumber);
   uint32_t GetTxPowerLevel (uint32_t channelNumber);
 
 private:
@@ -151,7 +151,7 @@ private:
     uint32_t channelNumber;
     uint32_t operatingClass;
     bool adapter;
-    enum DataRate dataRate;
+    enum WaveDataRate dataRate;
     uint32_t txPowerLevel;
 
     enum ChannelState state;

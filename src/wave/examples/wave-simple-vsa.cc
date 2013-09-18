@@ -271,7 +271,7 @@ WaveVsaExample::DoRun (void)
 
     Ptr<Packet> packet = Create<Packet> (100);
     const Mac48Address dest = Mac48Address::ConvertFrom (receiver->GetAddress ());
-    const VsaInfo vsaInfo = VsaInfo (dest, OrganizationIdentifier (), 0, packet, SCH1, 100, VsaSentInBothi);
+    const VsaInfo vsaInfo = VsaInfo (dest, OrganizationIdentifier (), 0, packet, SCH1, 100, VSA_IN_ANYI);
     Simulator::Schedule (Seconds (1.1),&WaveNetDevice::StartVsa, sender, vsaInfo);
 
     Simulator::Stop (Seconds (10));
@@ -303,7 +303,7 @@ WaveVsaExample::DoRun (void)
     Simulator::Schedule (Seconds (1.0),&WaveNetDevice::StartSch, receiver, schInfo);
 
     Ptr<Packet> packet = Create<Packet> (100);
-    const VsaInfo vsaInfo = VsaInfo (Mac48Address::GetBroadcast (), OrganizationIdentifier (), 0, packet, SCH1, 100, VsaSentInBothi);
+    const VsaInfo vsaInfo = VsaInfo (Mac48Address::GetBroadcast (), OrganizationIdentifier (), 0, packet, SCH1, 100, VSA_IN_ANYI);
     Simulator::Schedule (Seconds (1.1),&WaveNetDevice::StartVsa, sender, vsaInfo);
 
     Simulator::Schedule (Seconds (5.1),&WaveNetDevice::StopVsa, sender, SCH1);

@@ -41,15 +41,19 @@ class VsaRepeater;
 
 /**
  * indicate which interval the VSA frames will be transmitted in.
- * VsaSentOnCchi will only allow in CCH Interval;
- * VsaSentOnSchi will only allow in SCH Interval;
- * VsaSentOnBothi will allow anytime.
+ * VSA_IN_CCHI will only allow in CCH Interval;
+ * VSA_IN_SCHI will only allow in SCH Interval;
+ * VSA_IN_ANYI will allow anytime.
+ *
+ * note: now we only support VSA_IN_CCHI ad VSA_IN_SCHI when current
+ * channel access is alternating access, and support VSA_IN_ANYI when
+ * current channel access is continuous access or extended access.
  */
-enum VsaSentChannelInterval
+enum VsaSentInterval
 {
-  VsaSentInCchi  = 1,
-  VsaSentInSchi  = 2,
-  VsaSentInBothi = 3,
+  VSA_IN_CCHI = 1,
+  VSA_IN_SCHI = 2,
+  VSA_IN_ANYI = 3,
 };
 
 /**
@@ -83,17 +87,17 @@ struct VsaInfo
   uint32_t channelNumber;
   uint8_t repeatRate;
 
-  enum VsaSentChannelInterval channelInterval;
+  enum VsaSentInterval channelInterval;
 
   VsaInfo (Mac48Address peer, OrganizationIdentifier identifier, uint8_t manageId, Ptr<Packet> vscPacket,
-           uint32_t channel, uint8_t repeat, enum VsaSentChannelInterval i)
+           uint32_t channel, uint8_t repeat, enum VsaSentInterval interval)
     : peer (peer),
       oi (identifier),
       managementId (manageId),
       vsc (vscPacket),
       channelNumber (channel),
       repeatRate (repeat),
-      channelInterval (i)
+      channelInterval (interval)
   {
 
   }
@@ -155,19 +159,19 @@ struct TxInfo
 {
   uint32_t channelNumber;
   uint32_t priority;
-  enum DataRate dataRate;
+  enum WaveDataRate dataRate;
   uint32_t txPowerLevel;
   uint32_t expiryTime;
   TxInfo ()
     : channelNumber (CCH),
       priority (0),
-      dataRate (UnknownDataRate),
+      dataRate (UNKNOWN_DATA_RATE),
       txPowerLevel (8),
       expiryTime (0)
   {
 
   }
-  TxInfo (uint32_t channel, uint32_t prio = 0, enum DataRate rate = UnknownDataRate, uint32_t powerLevel = 8, uint32_t expire = 0)
+  TxInfo (uint32_t channel, uint32_t prio = 0, enum WaveDataRate rate = UNKNOWN_DATA_RATE, uint32_t powerLevel = 8, uint32_t expire = 0)
     : channelNumber (channel),
       priority (prio),
       dataRate (rate),
@@ -199,15 +203,15 @@ struct TxProfile
   uint32_t channelNumber;
   bool adaptable;
   uint32_t txPowerLevel;
-  enum DataRate dataRate;
+  enum WaveDataRate dataRate;
   TxProfile (void)
     : channelNumber (SCH1),
       adaptable (false),
       txPowerLevel (8),
-      dataRate (UnknownDataRate)
+      dataRate (UNKNOWN_DATA_RATE)
   {
   }
-  TxProfile (uint32_t channel, bool adapt = false, uint32_t powerLevel = 8, enum DataRate rate = UnknownDataRate)
+  TxProfile (uint32_t channel, bool adapt = false, uint32_t powerLevel = 8, enum WaveDataRate rate = UNKNOWN_DATA_RATE)
     : channelNumber (channel),
       adaptable (adapt),
       txPowerLevel (powerLevel),

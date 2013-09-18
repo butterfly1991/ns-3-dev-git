@@ -147,7 +147,7 @@ WaveNetDevice::StartVsa (const VsaInfo & vsaInfo)
     }
 
   if ((m_channelScheduler->GetAccess (cn) == ChannelScheduler::AlternatingAccess)
-      && (vsaInfo.channelInterval == VsaSentInBothi))
+      && (vsaInfo.channelInterval == VSA_IN_ANYI))
     {
       NS_LOG_DEBUG ("AlternatingAccess cannot fulfill both channel interval");
       return false;
@@ -329,7 +329,7 @@ WaveNetDevice::SendX (Ptr<Packet> packet, const Address & dest, uint32_t protoco
       packet->AddPacketTag (expire);
     }
 
-  if (txInfo.txPowerLevel < 8 && txInfo.dataRate != UnknownDataRate)
+  if (txInfo.txPowerLevel < 8 && txInfo.dataRate != UNKNOWN_DATA_RATE)
     {
       WifiMode datarate =  GetPhy ()->GetMode (txInfo.dataRate);
       WifiTxVector txVector;
@@ -437,7 +437,7 @@ WaveNetDevice::Send (Ptr<Packet> packet, const Address& dest, uint16_t protocol)
     ChannelTag channel (m_txProfile->channelNumber);
     packet->AddPacketTag (channel);
 
-    if (m_txProfile->txPowerLevel < 8 && m_txProfile->dataRate != UnknownDataRate)
+    if (m_txProfile->txPowerLevel < 8 && m_txProfile->dataRate != UNKNOWN_DATA_RATE)
       {
         WifiMode datarate =  GetPhy ()->GetMode (m_txProfile->dataRate);
         WifiTxVector txVector;

@@ -38,7 +38,7 @@ ChannelManager::GetTypeId (void)
 
 ChannelManager::ChannelManager ()
 {
-  WaveChannel c = {0, DEFAULT_CCH_OPERATING_CLASS, true, Ofdm6Mbps, 4, CHANNEL_DEAD};
+  WaveChannel c = {0, DEFAULT_CCH_OPERATING_CLASS, true, OFDM_6M, 4, CHANNEL_DEAD};
   for (uint32_t channelIndex = 0; channelIndex != CHANNELS_OF_WAVE; ++channelIndex)
     {
       WaveChannel *channel = new WaveChannel;
@@ -133,7 +133,7 @@ ChannelManager::IsAdapter (uint32_t channelNumber)
   uint32_t index = GetIndex (channelNumber);
   return m_channels[index]->adapter;
 }
-enum DataRate
+enum WaveDataRate
 ChannelManager::GetDataRate (uint32_t channelNumber)
 {
   uint32_t index = GetIndex (channelNumber);
