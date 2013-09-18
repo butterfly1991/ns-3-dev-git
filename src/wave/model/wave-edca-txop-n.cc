@@ -27,6 +27,7 @@
 #include "ns3/wifi-tx-vector.h"
 #include "ns3/wifi-mac-trailer.h"
 #include <map>
+#include "wave-mac-queue.h"
 #include "expire-time-tag.h"
 #include "channel-manager.h"
 #include "wave-edca-txop-n.h"
@@ -35,75 +36,8 @@ NS_LOG_COMPONENT_DEFINE ("WaveEdcaTxopN");
 
 namespace ns3 {
 
-/**
- * this class allow higher layer control the lifetime of each packet.
- * If higher layer do not select, each packet will still has a lifetime
- * which is same for the mac queue.
- * If higher layer selects one, the lifetime will be the minimum value
- * between set by higher layer and set by mac queue.
- */
-class WaveMacQueue : public WifiMacQueue
-{
-public:
-  static TypeId GetTypeId (void);
-  WaveMacQueue ();
-  ~WaveMacQueue ();
-protected:
-  virtual void Cleanup (void);
-};
 
-NS_OBJECT_ENSURE_REGISTERED (WaveMacQueue);
 
-TypeId
-WaveMacQueue::GetTypeId (void)
-{
-  static TypeId tid = TypeId ("ns3::WaveMacQueue")
-    .SetParent<WifiMacQueue> ()
-    .AddConstructor<WaveMacQueue> ()
-  ;
-  return tid;
-}
-WaveMacQueue::WaveMacQueue (void)
-{
-}
-WaveMacQueue::~WaveMacQueue (void)
-{
-}
-void
-WaveMacQueue::Cleanup (void)
-{
-  if (m_queue.empty ())
-    {
-      return;
-    }
-
-  Time now = Simulator::Now ();
-  for (PacketQueueI i = m_queue.begin (); i != m_queue.end (); )
-    {
-      ExpireTimeTag expireTimeTag;
-      bool result;
-      result = ConstCast<Packet> (i->packet)->RemovePacketTag (expireTimeTag);
-      Time delay;
-      if (result)
-        {
-          Time expire = MilliSeconds (expireTimeTag.GetExpireTime ());
-          delay = expire < m_maxDelay ? expire : m_maxDelay;
-        }
-      else
-        {
-          delay = m_maxDelay;
-        }
-
-      if (i->tstamp + delay > now)
-        {
-          i++;
-        }
-      else
-        {
-          i = m_queue.erase (i);
-        }
-    }
-}
 
 
 

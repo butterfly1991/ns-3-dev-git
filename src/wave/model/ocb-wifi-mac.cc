@@ -27,6 +27,7 @@
 #include "ns3/dcf-manager.h"
 #include "ns3/mac-rx-middle.h"
 #include "ns3/mgt-headers.h"
+#include "wave-mac-low.h"
 #include "ocb-wifi-mac.h"
 #include "vendor-specific-action.h"
 #include "higher-tx-tag.h"
@@ -35,79 +36,7 @@ NS_LOG_COMPONENT_DEFINE ("OcbWifiMac");
 
 namespace ns3 {
 
-/********************** WaveMacLow *******************************/
-/**
- * This class allow higher layer control data rate and tx power level.
- * If higher layer do not select, it will select by WifiRemoteStationManager
- * of MAC layer;
- * If higher layer selects tx arguments without adapter set, the data rate
- * and tx power level will be used to send the packet.
- * If higher layer selects tx arguments with adapter set, the data rate
- * will be lower bound for the actual data rate, and the power level
- * will be upper bound for the actual transmit power.
- */
-class WaveMacLow : public MacLow
-{
-public:
-  static TypeId GetTypeId (void);
-  WaveMacLow ();
-  ~WaveMacLow ();
-private:
-  virtual WifiTxVector GetDataTxVector (Ptr<const Packet> packet, const WifiMacHeader *hdr) const;
-};
-NS_OBJECT_ENSURE_REGISTERED (WaveMacLow);
 
-TypeId
-WaveMacLow::GetTypeId (void)
-{
-  static TypeId tid = TypeId ("ns3::WaveMacLow")
-    .SetParent<MacLow> ()
-    .AddConstructor<WaveMacLow> ()
-  ;
-  return tid;
-}
-WaveMacLow::WaveMacLow (void)
-{
-}
-WaveMacLow::~WaveMacLow (void)
-{
-}
-
-WifiTxVector
-WaveMacLow::GetDataTxVector (Ptr<const Packet> packet, const WifiMacHeader *hdr) const
-{
-  HigherDataTxVectorTag datatag;
-  bool found;
-  found = ConstCast<Packet> (packet)->PeekPacketTag (datatag);
-  if (!found)
-    {
-      return MacLow::GetDataTxVector (packet, hdr);
-    }
-
-  if (!datatag.IsAdapter ())
-    {
-      return datatag.GetDataTxVector ();
-    }
-
-  WifiTxVector txHigher = datatag.GetDataTxVector ();
-  WifiTxVector txMac = MacLow::GetDataTxVector (packet, hdr);
-  WifiTxVector txAdaper;
-  // if adapter is true, DataRate set by higher layer is the minimum data rate
-  // that sets the lower bound for the actual data rate.
-  if (txHigher.GetMode ().GetDataRate () > txMac.GetMode ().GetDataRate ())
-    {
-      txAdaper.SetMode (txHigher.GetMode ());
-    }
-  else
-    {
-      txAdaper.SetMode (txMac.GetMode ());
-    }
-
-  // if adapter is true, TxPwr_Level set by higher layer is the maximum
-  // transmit power that sets the upper bound for the actual transmit power;
-  txAdaper.SetTxPowerLevel (std::min (txHigher.GetTxPowerLevel (), txMac.GetTxPowerLevel ()));
-  return txAdaper;
-}
 
 /********************** OcbWifiMac *******************************/
 NS_OBJECT_ENSURE_REGISTERED (OcbWifiMac);
