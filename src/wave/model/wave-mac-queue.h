@@ -37,8 +37,8 @@ class WaveMacQueue : public WifiMacQueue
 {
 public:
   static TypeId GetTypeId (void);
-  WaveMacQueue ();
-  ~WaveMacQueue ();
+  WaveMacQueue (void);
+  virtual ~WaveMacQueue (void);
 protected:
   virtual void Cleanup (void);
 };

@@ -314,7 +314,7 @@ VendorSpecificContentManager::DeregisterVscCallback (OrganizationIdentifier &oi)
   m_callbacks.erase (oi);
 }
 
-static VscCallback null_callback = MakeNullCallback<bool,const OrganizationIdentifier &,Ptr<const Packet>,const Address &> ();
+static VscCallback null_callback = MakeNullCallback<bool, Ptr<WifiMac>, const OrganizationIdentifier &,Ptr<const Packet>,const Address &> ();
 
 VscCallback
 VendorSpecificContentManager::FindVscCallback (OrganizationIdentifier &oi)

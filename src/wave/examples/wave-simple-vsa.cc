@@ -72,8 +72,8 @@ public:
 private:
   void SendWsa (Ptr<OcbWifiMac>);
   void SendAuthen (Ptr<OcbWifiMac>);
-  bool GetWsaAndOi (const OrganizationIdentifier &,Ptr<const Packet>,const Address &);
-  bool GetAuthenAndOi (const OrganizationIdentifier &,Ptr<const Packet>,const Address &);
+  bool GetWsaAndOi (Ptr<WifiMac>, const OrganizationIdentifier &,Ptr<const Packet>,const Address &);
+  bool GetAuthenAndOi (Ptr<WifiMac>, const OrganizationIdentifier &,Ptr<const Packet>,const Address &);
 
   OrganizationIdentifier m_16093oi;
   OrganizationIdentifier m_authenoi;
@@ -99,16 +99,16 @@ Wifi80211pVsaExample::~Wifi80211pVsaExample ()
 }
 
 bool
-Wifi80211pVsaExample::GetWsaAndOi (const OrganizationIdentifier & oi,Ptr<const Packet> wsa, const Address & peer)
+Wifi80211pVsaExample::GetWsaAndOi (Ptr<WifiMac> mac, const OrganizationIdentifier & oi,Ptr<const Packet> wsa, const Address & peer)
 {
-  std::cout << "receive wsa packet" << std::endl;
+  std::cout << mac->GetAddress () << "receive wsa packet" << std::endl;
   return true;
 }
 
 bool
-Wifi80211pVsaExample::GetAuthenAndOi (const OrganizationIdentifier & oi,Ptr<const Packet> auth,const Address & peer)
+Wifi80211pVsaExample::GetAuthenAndOi (Ptr<WifiMac> mac, const OrganizationIdentifier & oi,Ptr<const Packet> auth,const Address & peer)
 {
-  std::cout << "receive authen packet" << std::endl;
+  std::cout << mac->GetAddress () << "receive authen packet" << std::endl;
   return true;
 }
 
@@ -118,6 +118,7 @@ Wifi80211pVsaExample::SendWsa (Ptr<OcbWifiMac> ocb)
   Ptr<Packet> vsc = Create<Packet> ();
   VendorSpecificActionHeader vsa;
   ocb->SendVsc (vsc, Mac48Address::GetBroadcast (), m_16093oi);
+  std::cout << ocb->GetAddress() << " broadcast VSA with Wave OrganiaztionIdentifier" << std::endl;
 }
 
 void
@@ -126,6 +127,7 @@ Wifi80211pVsaExample::SendAuthen (Ptr<OcbWifiMac> ocb)
   Ptr<Packet> auth = Create<Packet> ();
   VendorSpecificActionHeader vsa;
   ocb->SendVsc (auth, Mac48Address::GetBroadcast (),m_authenoi);
+  std::cout << ocb->GetAddress() << "broadcast VSA with Authen OrganiaztionIdentifier" << std::endl;
 }
 
 
@@ -322,8 +324,11 @@ WaveVsaExample::DoRun (void)
 
 int main (int argc, char *argv[])
 {
-//  Wifi80211pVsaExample wifi80211pSendVsa;
-//  wifi80211pSendVsa.DoRun ();
+  std::cout << "send VSAs with 802.11p device" << std::endl;
+  Wifi80211pVsaExample wifi80211pSendVsa;
+  wifi80211pSendVsa.DoRun ();
+  std::cout << std::endl;
+  std::cout << "send VSAs with wave device" << std::endl;
   WaveVsaExample waveSendVsa;
   waveSendVsa.DoRun ();
   return 0;

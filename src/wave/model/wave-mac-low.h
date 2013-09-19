@@ -25,7 +25,6 @@
 #include "ns3/mac-low.h"
 
 namespace ns3 {
-/********************** WaveMacLow *******************************/
 /**
  * This class allow higher layer control data rate and tx power level.
  * If higher layer do not select, it will select by WifiRemoteStationManager
@@ -40,8 +39,8 @@ class WaveMacLow : public MacLow
 {
 public:
   static TypeId GetTypeId (void);
-  WaveMacLow ();
-  ~WaveMacLow ();
+  WaveMacLow (void);
+  virtual ~WaveMacLow (void);
 private:
   virtual WifiTxVector GetDataTxVector (Ptr<const Packet> packet, const WifiMacHeader *hdr) const;
 };

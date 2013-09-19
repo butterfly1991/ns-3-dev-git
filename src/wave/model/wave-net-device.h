@@ -381,7 +381,7 @@ private:
   virtual void DoInitialize (void);
   void WaveForwardUp (Ptr<Packet> packet, Mac48Address from, Mac48Address to);
 
-  bool DoReceiveVsc (const OrganizationIdentifier &, Ptr<const Packet>, const Address &);
+  bool DoReceiveVsc (Ptr<WifiMac> , const OrganizationIdentifier &, Ptr<const Packet>, const Address &);
 
   WaveCallback m_waveVscReceived;
 

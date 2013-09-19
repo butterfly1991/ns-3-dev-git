@@ -158,7 +158,7 @@ WaveNetDevice::StartVsa (const VsaInfo & vsaInfo)
 }
 
 bool
-WaveNetDevice::DoReceiveVsc (const OrganizationIdentifier &oi, Ptr<const Packet> vsc, const Address &src)
+WaveNetDevice::DoReceiveVsc (Ptr<WifiMac> mac, const OrganizationIdentifier &oi, Ptr<const Packet> vsc, const Address &src)
 {
   NS_ASSERT (oi == oi_1609);
   uint32_t channelNumber = WifiNetDevice::GetPhy ()->GetChannelNumber ();

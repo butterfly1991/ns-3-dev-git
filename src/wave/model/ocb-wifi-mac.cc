@@ -292,7 +292,7 @@ OcbWifiMac::Receive (Ptr<Packet> packet, const WifiMacHeader *hdr)
               NS_LOG_DEBUG ("cannot find VscCallback for OrganizationIdentifier=" << oi);
               return;
             }
-          bool succeed = cb (oi,packet, from);
+          bool succeed = cb (this, oi,packet, from);
 
           if (!succeed)
             {
