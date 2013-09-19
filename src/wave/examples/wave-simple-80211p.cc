@@ -44,7 +44,7 @@ NS_LOG_COMPONENT_DEFINE ("WifiSimpleOcb");
 
 using namespace ns3;
 /*
- * In WAVE module, here is no net device class named like "Wifi80211p",
+ * In WAVE module, here is no net device class named like "Wifi80211pNetDevice",
  * instead, we need to use Wifi80211pHelper to create an object of
  * WifiNetDevice class.
  *
@@ -84,11 +84,9 @@ static void GenerateTraffic (Ptr<Socket> socket, uint32_t pktSize,
     }
 }
 
-
 int main (int argc, char *argv[])
 {
   std::string phyMode ("OfdmRate6MbpsBW10MHz");
-  double rss = -80;  // -dBm
   uint32_t packetSize = 1000; // bytes
   uint32_t numPackets = 1;
   double interval = 1.0; // seconds
@@ -97,57 +95,35 @@ int main (int argc, char *argv[])
   CommandLine cmd;
 
   cmd.AddValue ("phyMode", "Wifi Phy mode", phyMode);
-  cmd.AddValue ("rss", "received signal strength", rss);
   cmd.AddValue ("packetSize", "size of application packet sent", packetSize);
   cmd.AddValue ("numPackets", "number of packets generated", numPackets);
   cmd.AddValue ("interval", "interval (seconds) between packets", interval);
   cmd.AddValue ("verbose", "turn on all WifiNetDevice log components", verbose);
-
   cmd.Parse (argc, argv);
   // Convert to time object
   Time interPacketInterval = Seconds (interval);
 
-  // disable fragmentation for frames below 2200 bytes
-  Config::SetDefault ("ns3::WifiRemoteStationManager::FragmentationThreshold", StringValue ("2200"));
-  // turn off RTS/CTS for frames below 2200 bytes
-  Config::SetDefault ("ns3::WifiRemoteStationManager::RtsCtsThreshold", StringValue ("2200"));
-  // Fix non-unicast data rate to be the same as that of unicast
-  Config::SetDefault ("ns3::WifiRemoteStationManager::NonUnicastMode",
-                      StringValue (phyMode));
 
   NodeContainer c;
   c.Create (2);
 
   // The below set of helpers will help us to put together the wifi NICs we want
   YansWifiPhyHelper wifiPhy =  YansWifiPhyHelper::Default ();
-  // This is one parameter that matters when using FixedRssLossModel
-  // set it to zero; otherwise, gain will be added
-  wifiPhy.Set ("RxGain", DoubleValue (0) );
-  // ns-3 supports RadioTap and Prism tracing extensions for 802.11b
-  wifiPhy.SetPcapDataLinkType (YansWifiPhyHelper::DLT_IEEE802_11_RADIO);
-
-  YansWifiChannelHelper wifiChannel;
-  wifiChannel.SetPropagationDelay ("ns3::ConstantSpeedPropagationDelayModel");
-  // The below FixedRssLossModel will cause the rss to be fixed regardless
-  // of the distance between the two stations, and the transmit power
-  wifiChannel.AddPropagationLoss ("ns3::FixedRssLossModel","Rss",DoubleValue (rss));
-  wifiPhy.SetChannel (wifiChannel.Create ());
+  YansWifiChannelHelper wifiChannel = YansWifiChannelHelper::Default ();
+  Ptr<YansWifiChannel> channel = wifiChannel.Create ();
+  wifiPhy.SetChannel (channel);
   NqosWaveMacHelper wifi80211pMac = NqosWaveMacHelper::Default ();
-
   Wifi80211pHelper wifi80211p = Wifi80211pHelper::Default ();
   if (verbose)
     {
-      wifi80211p.EnableLogComponents ();      // Turn on all Wifi logging
+      wifi80211p.EnableLogComponents ();      // Turn on all Wifi 802.11p logging
     }
 
   wifi80211p.SetRemoteStationManager ("ns3::ConstantRateWifiManager",
                                       "DataMode",StringValue (phyMode),
                                       "ControlMode",StringValue (phyMode));
-
   NetDeviceContainer devices = wifi80211p.Install (wifiPhy, wifi80211pMac, c);
 
-  // Note that with FixedRssLossModel, the positions below are not
-  // used for received signal strength.
   MobilityHelper mobility;
   Ptr<ListPositionAllocator> positionAlloc = CreateObject<ListPositionAllocator> ();
   positionAlloc->Add (Vector (0.0, 0.0, 0.0));
@@ -174,12 +150,6 @@ int main (int argc, char *argv[])
   InetSocketAddress remote = InetSocketAddress (Ipv4Address ("255.255.255.255"), 80);
   source->SetAllowBroadcast (true);
   source->Connect (remote);
-
-  // Tracing
-  wifiPhy.EnablePcap ("wifi-simple-ocb", devices);
-
-  // Output what we are doing
-  NS_LOG_UNCOND ("Testing " << numPackets  << " packets sent with receiver rss " << rss );
 
   Simulator::ScheduleWithContext (source->GetNode ()->GetId (),
                                   Seconds (1.0), &GenerateTraffic,
