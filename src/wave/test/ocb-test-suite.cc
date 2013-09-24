@@ -32,6 +32,7 @@
 #include "ns3/packet-socket-helper.h"
 #include "ns3/mobility-helper.h"
 #include "ns3/nqos-wifi-mac-helper.h"
+#include "ns3/wifi-net-device.h"
 #include <iostream>
 
 #include "ns3/ocb-wifi-mac.h"
@@ -39,12 +40,43 @@
 #include "ns3/wave-mac-helper.h"
 
 using namespace ns3;
+// helper function to assign streams to random variables, to control
+// randomness in the tests
+static void
+AssignWifiRandomStreams (Ptr<WifiMac> mac, int64_t stream)
+{
+  int64_t currentStream = stream;
+  Ptr<RegularWifiMac> rmac = DynamicCast<RegularWifiMac> (mac);
+  if (rmac)
+    {
+      PointerValue ptr;
+      rmac->GetAttribute ("DcaTxop", ptr);
+      Ptr<DcaTxop> dcaTxop = ptr.Get<DcaTxop> ();
+      currentStream += dcaTxop->AssignStreams (currentStream);
+
+      rmac->GetAttribute ("VO_EdcaTxopN", ptr);
+      Ptr<EdcaTxopN> vo_edcaTxopN = ptr.Get<EdcaTxopN> ();
+      currentStream += vo_edcaTxopN->AssignStreams (currentStream);
+
+      rmac->GetAttribute ("VI_EdcaTxopN", ptr);
+      Ptr<EdcaTxopN> vi_edcaTxopN = ptr.Get<EdcaTxopN> ();
+      currentStream += vi_edcaTxopN->AssignStreams (currentStream);
+
+      rmac->GetAttribute ("BE_EdcaTxopN", ptr);
+      Ptr<EdcaTxopN> be_edcaTxopN = ptr.Get<EdcaTxopN> ();
+      currentStream += be_edcaTxopN->AssignStreams (currentStream);
+
+      rmac->GetAttribute ("BK_EdcaTxopN", ptr);
+      Ptr<EdcaTxopN> bk_edcaTxopN = ptr.Get<EdcaTxopN> ();
+      currentStream += bk_edcaTxopN->AssignStreams (currentStream);
+    }
+}
 
 class OcbWifiMacTestCase : public TestCase
 {
 public:
-  OcbWifiMacTestCase ();
-  virtual ~OcbWifiMacTestCase ();
+  OcbWifiMacTestCase (void);
+  virtual ~OcbWifiMacTestCase (void);
 private:
   virtual void DoRun (void);
 
@@ -54,11 +86,11 @@ private:
   Vector GetCurrentPosition (uint32_t i);
   void AdvancePosition (Ptr<Node> node);
 
+  void PreRandomConfiguration (void);
   void ConfigureApStaMode (Ptr<Node> static_node, Ptr<Node> mobile_node);
   void ConfigureAdhocMode (Ptr<Node> static_node, Ptr<Node> mobile_node);
   void ConfigureOcbMode (Ptr<Node> static_node, Ptr<Node> mobile_node);
-  void ConfigureAfterMacMode (Ptr<Node> static_node, Ptr<Node> mobile_node);
-
+  void PostDeviceConfiguration (Ptr<Node> static_node, Ptr<Node> mobile_node);
 
   Time phytx_time;
   Vector phytx_pos;
@@ -74,14 +106,13 @@ private:
   NodeContainer nodes;
 };
 
-OcbWifiMacTestCase::OcbWifiMacTestCase ()
+OcbWifiMacTestCase::OcbWifiMacTestCase (void)
   : TestCase ("Association time: Ap+Sta mode vs Adhoc mode vs Ocb mode")
 {
 }
 
-OcbWifiMacTestCase::~OcbWifiMacTestCase ()
+OcbWifiMacTestCase::~OcbWifiMacTestCase (void)
 {
-
 }
 
 // mobility is like walk on line with velocity 5 m/s
@@ -102,7 +133,7 @@ OcbWifiMacTestCase::AdvancePosition (Ptr<Node> node)
   Simulator::Schedule (Seconds (0.1), &OcbWifiMacTestCase::AdvancePosition, this, node);
 }
 
-// here is only two nodes: a static one and a run one
+// here are only two nodes, a stationary and a mobile one
 // the i value of the first = 0; the i value of second = 1.
 Vector
 OcbWifiMacTestCase::GetCurrentPosition (uint32_t i)
@@ -161,36 +192,40 @@ OcbWifiMacTestCase::PhyTxTrace (std::string context, Ptr<const Packet> packet, W
 void
 OcbWifiMacTestCase::ConfigureApStaMode (Ptr<Node> static_node, Ptr<Node> mobile_node)
 {
+  YansWifiChannelHelper wifiChannel = YansWifiChannelHelper::Default ();
+  YansWifiPhyHelper wifiPhy = YansWifiPhyHelper::Default ();
+  wifiPhy.SetChannel (wifiChannel.Create ());
+
+  Ssid ssid = Ssid ("wifi-default");
+  NqosWifiMacHelper wifiStaMac = NqosWifiMacHelper::Default ();
+  wifiStaMac.SetType ("ns3::StaWifiMac", "Ssid", SsidValue (ssid));
+  NqosWifiMacHelper wifiApMac = NqosWifiMacHelper::Default ();
+  wifiApMac.SetType ("ns3::ApWifiMac","Ssid", SsidValue (ssid));
+
   WifiHelper wifi = WifiHelper::Default ();
   wifi.SetStandard (WIFI_PHY_STANDARD_80211_10MHZ);
-  NqosWifiMacHelper wifiMac = NqosWifiMacHelper::Default ();
-  YansWifiPhyHelper wifiPhy = YansWifiPhyHelper::Default ();
-  YansWifiChannelHelper wifiChannel = YansWifiChannelHelper::Default ();
-  wifiPhy.SetChannel (wifiChannel.Create ());
-  Ssid ssid = Ssid ("wifi-default");
   wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager",
                                 "DataMode", StringValue ("OfdmRate6MbpsBW10MHz"),
                                 "ControlMode",StringValue ("OfdmRate6MbpsBW10MHz"));
-  wifiMac.SetType ("ns3::StaWifiMac", "Ssid", SsidValue (ssid));
-  wifi.Install (wifiPhy, wifiMac, mobile_node);
-  wifiMac.SetType ("ns3::ApWifiMac","Ssid", SsidValue (ssid));
-  wifi.Install (wifiPhy, wifiMac, static_node);
-  wifi.Install (wifiPhy, wifiMac, static_node);
+  wifi.Install (wifiPhy, wifiStaMac, mobile_node);
+  wifi.Install (wifiPhy, wifiApMac, static_node);
 }
 
 void
 OcbWifiMacTestCase::ConfigureAdhocMode (Ptr<Node> static_node, Ptr<Node> mobile_node)
 {
+  YansWifiChannelHelper wifiChannel = YansWifiChannelHelper::Default ();
+  YansWifiPhyHelper wifiPhy = YansWifiPhyHelper::Default ();
+  wifiPhy.SetChannel (wifiChannel.Create ());
+
+  NqosWifiMacHelper wifiMac = NqosWifiMacHelper::Default ();
+  wifiMac.SetType ("ns3::AdhocWifiMac");
+
   WifiHelper wifi = WifiHelper::Default ();
   wifi.SetStandard (WIFI_PHY_STANDARD_80211_10MHZ);
-  NqosWifiMacHelper wifiMac = NqosWifiMacHelper::Default ();
-  YansWifiPhyHelper wifiPhy = YansWifiPhyHelper::Default ();
-  YansWifiChannelHelper wifiChannel = YansWifiChannelHelper::Default ();
-  wifiPhy.SetChannel (wifiChannel.Create ());
   wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager",
                                 "DataMode", StringValue ("OfdmRate6MbpsBW10MHz"),
                                 "ControlMode",StringValue ("OfdmRate6MbpsBW10MHz"));
-  wifiMac.SetType ("ns3::AdhocWifiMac");
   wifi.Install (wifiPhy, wifiMac, mobile_node);
   wifi.Install (wifiPhy, wifiMac, static_node);
 }
@@ -198,10 +233,12 @@ OcbWifiMacTestCase::ConfigureAdhocMode (Ptr<Node> static_node, Ptr<Node> mobile_
 void
 OcbWifiMacTestCase::ConfigureOcbMode (Ptr<Node> static_node, Ptr<Node> mobile_node)
 {
-  YansWifiPhyHelper wifiPhy = YansWifiPhyHelper::Default ();
   YansWifiChannelHelper wifiChannel = YansWifiChannelHelper::Default ();
+  YansWifiPhyHelper wifiPhy = YansWifiPhyHelper::Default ();
   wifiPhy.SetChannel (wifiChannel.Create ());
+
   NqosWaveMacHelper wifi80211pMac = NqosWaveMacHelper::Default ();
+
   Wifi80211pHelper wifi80211p = Wifi80211pHelper::Default ();
   wifi80211p.SetRemoteStationManager ("ns3::ConstantRateWifiManager",
                                       "DataMode", StringValue ("OfdmRate6MbpsBW10MHz"),
@@ -211,8 +248,18 @@ OcbWifiMacTestCase::ConfigureOcbMode (Ptr<Node> static_node, Ptr<Node> mobile_no
 }
 
 void
-OcbWifiMacTestCase::ConfigureAfterMacMode (Ptr<Node> static_node, Ptr<Node> mobile_node)
+OcbWifiMacTestCase::PostDeviceConfiguration (Ptr<Node> static_node, Ptr<Node> mobile_node)
 {
+  Ptr<WifiNetDevice> static_device = DynamicCast<WifiNetDevice>(static_node->GetDevice (0));
+  Ptr<WifiNetDevice> mobile_device = DynamicCast<WifiNetDevice>(mobile_node->GetDevice (0));
+
+  // Fix the stream assignment to the Dcf Txop objects (backoffs)
+  // The below stream assignment will result in the DcaTxop object
+  // using a backoff value of zero for this test when the
+  // DcaTxop::EndTxNoAck() calls to StartBackoffNow()
+  AssignWifiRandomStreams (static_device->GetMac (), 21);
+  AssignWifiRandomStreams (mobile_device->GetMac (), 22);
+
   // setup mobility
   // the initial position of static node is at 0,
   // and the initial position of mobile node is 350.
@@ -226,8 +273,8 @@ OcbWifiMacTestCase::ConfigureAfterMacMode (Ptr<Node> static_node, Ptr<Node> mobi
   Simulator::Schedule (Seconds (1.0), &OcbWifiMacTestCase::AdvancePosition, this, mobile_node);
 
   PacketSocketAddress socket;
-  socket.SetSingleDevice (mobile_node->GetDevice (0)->GetIfIndex ());
-  socket.SetPhysicalAddress (static_node->GetDevice (0)->GetAddress ());
+  socket.SetSingleDevice (mobile_device->GetIfIndex ());
+  socket.SetPhysicalAddress (static_device->GetAddress ());
   socket.SetProtocol (1);
 
   // give packet socket powers to nodes.
@@ -251,28 +298,28 @@ OcbWifiMacTestCase::ConfigureAfterMacMode (Ptr<Node> static_node, Ptr<Node> mobi
 
 /**
  *
- *   static-node:0    <----       run-node:1
+ *   static-node:0    <----       mobile-node:1
  *        *   ------ 350m -------    *
  *
  * the node transmit range is less than 150m
  *
  * Ap+Sta mode vs Adhoc mode vs Ocb mode
- * First test time point when one AP mode node(static) and one Sta mode node(run).
- * Then test when one Ad-hoc node and another Ad-hoc node
- * Last test when one OCB node and another OCB node
+ * first test the time point when the stationary node is
+ * an AP and the mobile node is a Sta
+ * then test when one Ad-hoc node and another Ad-hoc node
+ * last test when one OCB node and another OCB node
  */
 void
 OcbWifiMacTestCase::DoRun ()
 {
   std::cout << "test time point for Ap-Sta mode" << std::endl;
-  RngSeedManager::SetSeed (3); // Changes seed from default of 1 to 3
-  RngSeedManager::SetRun (7); // Changes run number from default of 1 to 7
+  PreRandomConfiguration ();
   nodes = NodeContainer ();
   nodes.Create (2);
   Ptr<Node> static_node = nodes.Get (0);
   Ptr<Node> mobile_node = nodes.Get (1);
   ConfigureApStaMode (static_node, mobile_node);
-  ConfigureAfterMacMode (static_node, mobile_node);
+  PostDeviceConfiguration (static_node, mobile_node);
   Simulator::Stop (Seconds (71.0));
   Simulator::Run ();
   Simulator::Destroy ();
@@ -286,14 +333,13 @@ OcbWifiMacTestCase::DoRun ()
   //NS_TEST_ASSERT_MSG_GT ((macassoc_pos.x - phytx_pos.x), 0.0, "");
 
   std::cout << "test time point for Adhoc mode" << std::endl;
-  RngSeedManager::SetSeed (3); // Changes seed from default of 1 to 3
-  RngSeedManager::SetRun (7); // Changes run number from default of 1 to 7
+  PreRandomConfiguration ();
   nodes = NodeContainer ();
   nodes.Create (2);
   static_node = nodes.Get (0);
   mobile_node = nodes.Get (1);
   ConfigureAdhocMode (static_node, mobile_node);
-  ConfigureAfterMacMode (static_node, mobile_node);
+  PostDeviceConfiguration (static_node, mobile_node);
   Simulator::Stop (Seconds (71.0));
   Simulator::Run ();
   Simulator::Destroy ();
@@ -307,14 +353,13 @@ OcbWifiMacTestCase::DoRun ()
   //NS_TEST_ASSERT_MSG_GT ((macassoc_pos.x - phytx_pos.x), 0.0, "");
 
   std::cout << "test time point for Ocb mode" << std::endl;
-  RngSeedManager::SetSeed (3); // Changes seed from default of 1 to 3
-  RngSeedManager::SetRun (7); // Changes run number from default of 1 to 7
+  PreRandomConfiguration ();
   nodes = NodeContainer ();
   nodes.Create (2);
   static_node = nodes.Get (0);
   mobile_node = nodes.Get (1);
   ConfigureOcbMode (static_node, mobile_node);
-  ConfigureAfterMacMode (static_node, mobile_node);
+  PostDeviceConfiguration (static_node, mobile_node);
   Simulator::Stop (Seconds (71.0));
   Simulator::Run ();
   Simulator::Destroy ();
@@ -323,8 +368,15 @@ OcbWifiMacTestCase::DoRun ()
   NS_TEST_ASSERT_MSG_EQ (macassoc_pos.x, 0.0, "");
   NS_TEST_ASSERT_MSG_GT ((phytx_pos.x - phyrx_pos.x), 0.0, "");
 }
-
-
+void
+OcbWifiMacTestCase::PreRandomConfiguration ()
+{
+  // Assign a seed and run number, and later fix the assignment of streams to
+  // WiFi random variables, so that the first backoff used is zero slots
+  RngSeedManager::SetSeed (1);
+  RngSeedManager::SetRun (17);
+  // the WiFi random variables is set in PostDeviceConfiguration method.
+}
 
 class OcbTestSuite : public TestSuite
 {
@@ -333,7 +385,7 @@ public:
 };
 
 OcbTestSuite::OcbTestSuite ()
-  : TestSuite ("ocb", UNIT)
+  : TestSuite ("wifi-80211p-ocb", UNIT)
 {
   // TestDuration for TestCase can be QUICK, EXTENSIVE or TAKES_FOREVER
   AddTestCase (new OcbWifiMacTestCase, TestCase::QUICK);

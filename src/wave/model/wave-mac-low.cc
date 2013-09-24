@@ -19,8 +19,11 @@
  * Author: Mathieu Lacage <mathieu.lacage@sophia.inria.fr>
  *         Junling Bu <linlinjavaer@gmail.com>
  */
+#include "ns3/log.h"
 #include "wave-mac-low.h"
 #include "higher-tx-tag.h"
+
+NS_LOG_COMPONENT_DEFINE ("WaveMacLow");
 
 namespace ns3 {
 
@@ -37,14 +40,17 @@ WaveMacLow::GetTypeId (void)
 }
 WaveMacLow::WaveMacLow (void)
 {
+  NS_LOG_FUNCTION (this);
 }
 WaveMacLow::~WaveMacLow (void)
 {
+  NS_LOG_FUNCTION (this);
 }
 
 WifiTxVector
 WaveMacLow::GetDataTxVector (Ptr<const Packet> packet, const WifiMacHeader *hdr) const
 {
+  NS_LOG_FUNCTION (this << packet << *hdr);
   HigherDataTxVectorTag datatag;
   bool found;
   found = ConstCast<Packet> (packet)->PeekPacketTag (datatag);
@@ -60,21 +66,21 @@ WaveMacLow::GetDataTxVector (Ptr<const Packet> packet, const WifiMacHeader *hdr)
 
   WifiTxVector txHigher = datatag.GetDataTxVector ();
   WifiTxVector txMac = MacLow::GetDataTxVector (packet, hdr);
-  WifiTxVector txAdaper;
+  WifiTxVector txAdapter;
   // if adapter is true, DataRate set by higher layer is the minimum data rate
   // that sets the lower bound for the actual data rate.
   if (txHigher.GetMode ().GetDataRate () > txMac.GetMode ().GetDataRate ())
     {
-      txAdaper.SetMode (txHigher.GetMode ());
+	  txAdapter.SetMode (txHigher.GetMode ());
     }
   else
     {
-      txAdaper.SetMode (txMac.GetMode ());
+	  txAdapter.SetMode (txMac.GetMode ());
     }
 
   // if adapter is true, TxPwr_Level set by higher layer is the maximum
   // transmit power that sets the upper bound for the actual transmit power;
-  txAdaper.SetTxPowerLevel (std::min (txHigher.GetTxPowerLevel (), txMac.GetTxPowerLevel ()));
-  return txAdaper;
+  txAdapter.SetTxPowerLevel (std::min (txHigher.GetTxPowerLevel (), txMac.GetTxPowerLevel ()));
+  return txAdapter;
 }
 } // namespace ns3

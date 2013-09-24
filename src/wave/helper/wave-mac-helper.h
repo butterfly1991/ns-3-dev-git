@@ -33,19 +33,19 @@ class NqosWaveMacHelper : public NqosWifiMacHelper
 {
 public:
   /**
-   * Create a NqosWifiMacHelper to make life easier for people who want to
-   * work with non-QOS Wifi MAC layers.
+   * Create a NqosWaveMacHelper to make life easier for people who want to
+   * work with non-QOS Wave MAC layers.
    */
-  NqosWaveMacHelper ();
+  NqosWaveMacHelper (void);
 
   /**
    * \internal
-   * Destroy a NqosWifiMacHelper.
+   * Destroy a NqosWaveMacHelper.
    */
-  virtual ~NqosWaveMacHelper ();
+  virtual ~NqosWaveMacHelper (void);
   /**
    * Create a mac helper in a default working state.
-   * i.e., this is an adhoc mac by default.
+   * i.e., this is an ocb mac by default.
    */
   static NqosWaveMacHelper Default (void);
   /**
@@ -69,6 +69,8 @@ public:
    *
    * All the attributes specified in this method should exist
    * in the requested mac.
+   * note: Here we require users set type with OcbWifiMac or its
+   * subclass, otherwise it will become error
    */
   virtual void SetType (std::string type,
                         std::string n0 = "", const AttributeValue &v0 = EmptyAttributeValue (),
@@ -85,16 +87,16 @@ class QosWaveMacHelper : public QosWifiMacHelper
 {
 public:
   /**
-   * Create a QosWifiMacHelper that is used to make life easier when working
-   * with Wifi devices using a QOS MAC layer.
+   * Create a QosWaveMacHelper that is used to make life easier when working
+   * with Wifi 802.11p devices using a QOS MAC layer.
    */
-  QosWaveMacHelper ();
+  QosWaveMacHelper (void);
 
   /**
    * \internal
-   * Destroy a QosWifiMacHelper
+   * Destroy a QosWaveMacHelper
    */
-  virtual ~QosWaveMacHelper ();
+  virtual ~QosWaveMacHelper (void);
 
   /**
    * Create a mac helper in a default working state.
@@ -122,6 +124,9 @@ public:
    *
    * All the attributes specified in this method should exist
    * in the requested mac.
+   *
+   * note: Here we require users set type with OcbWifiMac or its
+   * subclass, otherwise it will become error
    */
   virtual void SetType (std::string type,
                         std::string n0 = "", const AttributeValue &v0 = EmptyAttributeValue (),

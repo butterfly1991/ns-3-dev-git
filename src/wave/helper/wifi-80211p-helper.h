@@ -47,17 +47,16 @@ public:
    * The default state is defined as being an OcbWifiMac MAC
    * layer with constant rate OfdmRate6MbpsBW10MHz
    * and both objects using their default attribute values.
-   * Besides that, the MAC and PHY layer shall be configured
-   * to 802.11a with 20MHz or 10MHz.
    */
   static Wifi80211pHelper Default (void);
 
   /**
    * \param standard the phy standard to configure during installation
    *
-   * Users can only configure 802.11a with 10MHz or 20MHz channel bandwidth,
-   * the other standard will be allowed. The default standard is 10MHz
-   * indicated by WIFI_PHY_STANDARD_80211_10MHZ.
+   * Users can only configure 802.11a with 10MHz channel bandwidth indicated by
+   * WIFI_PHY_STANDARD_80211_10MHZ or 20MHz channel bandwidth indicated by
+   * WIFI_PHY_STANDARD_80211a, other standard types will be not allowed.
+   * The default standard is 10MHz.
    */
   virtual void SetStandard (enum WifiPhyStandard standard);
 

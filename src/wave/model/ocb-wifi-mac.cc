@@ -36,9 +36,6 @@ NS_LOG_COMPONENT_DEFINE ("OcbWifiMac");
 
 namespace ns3 {
 
-
-
-/********************** OcbWifiMac *******************************/
 NS_OBJECT_ENSURE_REGISTERED (OcbWifiMac);
 
 const static Mac48Address WILDCARD_BSSID = Mac48Address::GetBroadcast ();
@@ -53,7 +50,7 @@ OcbWifiMac::GetTypeId (void)
   return tid;
 }
 
-OcbWifiMac::OcbWifiMac ()
+OcbWifiMac::OcbWifiMac (void)
 {
   NS_LOG_FUNCTION (this);
 
@@ -73,7 +70,7 @@ OcbWifiMac::OcbWifiMac ()
   RegularWifiMac::SetBssid (WILDCARD_BSSID);
 }
 
-OcbWifiMac::~OcbWifiMac ()
+OcbWifiMac::~OcbWifiMac (void)
 {
   NS_LOG_FUNCTION (this);
 }
@@ -122,13 +119,13 @@ OcbWifiMac::RemoveReceiveVscCallback (OrganizationIdentifier oi)
 void
 OcbWifiMac::SetSsid (Ssid ssid)
 {
-  NS_LOG_WARN ("in OCB mode we should not call SetSsid");
+  NS_LOG_WARN ("In OCB mode we should not call SetSsid");
 }
 
 Ssid
 OcbWifiMac::GetSsid (void) const
 {
-	NS_FATAL_ERROR ("in OCB mode we should not call GetSsid");
+  NS_FATAL_ERROR ("In OCB mode we should not call GetSsid");
   // we really do not want to return ssid, however we have to provide
   return RegularWifiMac::GetSsid ();
 }
@@ -137,13 +134,13 @@ OcbWifiMac::GetSsid (void) const
 void
 OcbWifiMac::SetBssid (Mac48Address bssid)
 {
-	NS_FATAL_ERROR ("in OCB mode we should not call SetSsid");
+  NS_FATAL_ERROR ("In OCB mode we should not call SetSsid");
 }
 
 Mac48Address
 OcbWifiMac::GetBssid (void) const
 {
-	NS_FATAL_ERROR ("in OCB mode we should not call GetBssid");
+  NS_FATAL_ERROR ("in OCB mode we should not call GetBssid");
   return WILDCARD_BSSID;
 }
 
@@ -164,7 +161,7 @@ OcbWifiMac::SetLinkDownCallback (Callback<void> linkDown)
 {
   NS_LOG_FUNCTION (this << &linkDown);
   RegularWifiMac::SetLinkDownCallback (linkDown);
-  NS_FATAL_ERROR ("in OCB mode the like will never down, so linkDown will never be called");
+  NS_LOG_WARN ("In OCB mode the like will never down, so linkDown will never be called");
 }
 
 void
@@ -311,43 +308,43 @@ OcbWifiMac::Receive (Ptr<Packet> packet, const WifiMacHeader *hdr)
 void
 OcbWifiMac::ConfigureEdca (uint32_t cwmin, uint32_t cwmax, uint32_t aifsn, enum AcIndex ac)
 {
-	Ptr<Dcf> dcf;
-	  switch (ac)
-	    {
-	    case AC_VO:
-	      dcf = RegularWifiMac::GetVOQueue ();
-	      dcf->SetMinCw ((cwmin + 1) / 4 - 1);
-	      dcf->SetMaxCw ((cwmin + 1) / 2 - 1);
-	      dcf->SetAifsn (aifsn);
-	      break;
-	    case AC_VI:
-	      dcf = RegularWifiMac::GetVIQueue ();
-	      dcf->SetMinCw ((cwmin + 1) / 2 - 1);
-	      dcf->SetMaxCw (cwmin);
-	      dcf->SetAifsn (aifsn);
-	      break;
-	    case AC_BE:
-	      dcf = RegularWifiMac::GetBEQueue ();
-	      dcf->SetMinCw (cwmin);
-	      dcf->SetMaxCw (cwmax);
-	      dcf->SetAifsn (aifsn);
-	      break;
-	    case AC_BK:
-	      dcf = RegularWifiMac::GetBKQueue ();
-	      dcf->SetMinCw (cwmin);
-	      dcf->SetMaxCw (cwmax);
-	      dcf->SetAifsn (aifsn);
-	      break;
-	    case AC_BE_NQOS:
-		  dcf = RegularWifiMac::GetDcaTxop ();
-	      dcf->SetMinCw (cwmin);
-	      dcf->SetMaxCw (cwmax);
-	      dcf->SetAifsn (aifsn);
-	      break;
-	    case AC_UNDEF:
-	      NS_FATAL_ERROR ("I don't know what to do with this");
-	      break;
-	    }
+  Ptr<Dcf> dcf;
+  switch (ac)
+    {
+    case AC_VO:
+	  dcf = RegularWifiMac::GetVOQueue ();
+	  dcf->SetMinCw ((cwmin + 1) / 4 - 1);
+	  dcf->SetMaxCw ((cwmin + 1) / 2 - 1);
+      dcf->SetAifsn (aifsn);
+	  break;
+	case AC_VI:
+	  dcf = RegularWifiMac::GetVIQueue ();
+	  dcf->SetMinCw ((cwmin + 1) / 2 - 1);
+	  dcf->SetMaxCw (cwmin);
+	  dcf->SetAifsn (aifsn);
+	  break;
+	case AC_BE:
+      dcf = RegularWifiMac::GetBEQueue ();
+	  dcf->SetMinCw (cwmin);
+	  dcf->SetMaxCw (cwmax);
+      dcf->SetAifsn (aifsn);
+      break;
+	case AC_BK:
+      dcf = RegularWifiMac::GetBKQueue ();
+      dcf->SetMinCw (cwmin);
+	  dcf->SetMaxCw (cwmax);
+	  dcf->SetAifsn (aifsn);
+	  break;
+    case AC_BE_NQOS:
+	  dcf = RegularWifiMac::GetDcaTxop ();
+	  dcf->SetMinCw (cwmin);
+	  dcf->SetMaxCw (cwmax);
+	  dcf->SetAifsn (aifsn);
+	  break;
+	case AC_UNDEF:
+      NS_FATAL_ERROR ("I don't know what to do with this");
+	  break;
+	}
 }
 
 void

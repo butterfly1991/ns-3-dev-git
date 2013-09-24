@@ -501,7 +501,7 @@ WifiActionHeader::SetAction (WifiActionHeader::CategoryValue type,
     case MESH_INTERWORKING:
     case MESH_RESOURCE_COORDINATION:
     case MESH_PROXY_FORWARDING:
-    case Vendor_Specific_Action:
+    case VENDOR_SPECIFIC_ACTION:
       break;
     }
 }
@@ -524,8 +524,8 @@ WifiActionHeader::GetCategory ()
       return MESH_RESOURCE_COORDINATION;
     case MESH_PROXY_FORWARDING:
       return MESH_PROXY_FORWARDING;
-    case Vendor_Specific_Action:
-      return Vendor_Specific_Action;
+    case VENDOR_SPECIFIC_ACTION:
+      return VENDOR_SPECIFIC_ACTION;
     default:
       NS_FATAL_ERROR ("Unknown action value");
       return MESH_PEERING_MGT;
@@ -582,7 +582,7 @@ WifiActionHeader::GetAction ()
           retval.peerLink = PEER_LINK_OPEN; /* quiet compiler */
         }
       break ;
-    case Vendor_Specific_Action:
+    case VENDOR_SPECIFIC_ACTION:
       break ;
     case MESH_LINK_METRIC:
     // not yet supported

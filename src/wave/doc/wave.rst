@@ -84,12 +84,10 @@ although Timing Advertisement is very important and specific defined in
 802.11p standard, it is useless in simulation environment. Every node in |ns3| is 
 assumed already time synchronized,
 which we can imagine that every node has a GPS device installed. 
-5. ConfigureOcbDcf
-This method will set default EDCA parameters not only in WAVE channeles including 
-CCH ans SCHs. Further, the deprecated 802.11p code in wifi module has some 
-mistakes in 802.11p DCF configuration.
-The reference is old 1609.4-2006, but the newest shall be 1609.4-2010 
-and 802.11p-2010 which set EDCA parameters different from the old standard.
+5. ConfigureEdca
+This method will allow user set EDCA parameters of WAVE channeles including 
+CCH ans SCHs. And OcbWifiMac itself also use this method to configure default 
+802.11p EDCA parameters.
 6. WILDCARD BSSID
 the WILDCARD BSSID is set to "ff:ff:ff:ff:ff:ff".
 As defined in 802.11-2007, a wildcard BSSID shall not be used in the

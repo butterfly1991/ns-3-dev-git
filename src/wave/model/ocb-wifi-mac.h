@@ -36,7 +36,13 @@ class WifiMacQueue;
  * \ingroup wave
  *
  * In OCB mac mode,synchronization, association, dis-association
- * and authentication are not used.
+ * and authentication of normal wifi are not used for wireless access in
+ * vehicular environments.
+ *
+ * Although Timing Advertisement frame is a specific management frame defined
+ * in 802.11p. It is mainly used by IEEE Std 1609.4 for channel switch synchronization.
+ * However in simulation nodes are supposed to have GPS synchronization ability,
+ * so we will not implement this feature.
  */
 class OcbWifiMac : public RegularWifiMac
 {
@@ -58,49 +64,45 @@ public:
    * \param oi Organization Identifier
    * \param cb callback to invoke whenever a vender specific action frame has been received and must
    *        be forwarded to the higher layers.
-   * every vendor specific content should first register its receive callback
-   * for examples:
-   * IEEE1609.3 uses VSA frame to send WSA(WAVE Service Advertisement) management information
-   * uint8_t oi_bytes[5]={0x00, 0x50, 0xC2, 0x4A, 0x40};
-   * OrganizationIdentifier oi_16093(oi_bytes,5);
-   * ReceiveVscCallback vsc_16093 =......;
-   * AddReceiveVscCallback (oi_16093, vsc_16093);
-   * so when VSA frame parses the OrganizationIdentifier of IEEE1609.3
-   * then the registed callback will be called.
+   * every node shall register first if it wants to receive specific vendor specific content.
    */
   void AddReceiveVscCallback (OrganizationIdentifier oi, VscCallback cb);
 
   void RemoveReceiveVscCallback (OrganizationIdentifier oi);
 
-  /*
-   * Although Timing Advertisement frame is a specific management frame defined in 802.11p
-   * It is mainly used in IEEE Std 1609.4 for channel switch synchronization
-   * And simulation can provide GPS synchronization ability, so we will not implement this.
-   *
-   * void SendTimingAdvertisement ();
-   */
-
   // GetSsid,SetSsid,SetBssid andGetBssid methods will be overwritted to log warn message
   /**
    * \returns the ssid which this MAC layer is going to try to stay in.
+   *
+   * This method shall not be used in WAVE environment and
+   * here it will overloaded to log warn message
    */
   virtual Ssid GetSsid (void) const;
   /**
    * \param ssid the current ssid of this MAC layer.
+   *
+   * This method shall not be used in WAVE environment and
+   * here it will overloaded to log warn message
    */
   virtual void SetSsid (Ssid ssid);
   /**
    * \param bssid the BSSID of the network that this device belongs to.
+   *
+   * This method shall not be used in WAVE environment and
+   * here it will overloaded to log warn message
    */
   virtual void SetBssid (Mac48Address bssid);
   /**
    * \param bssid the BSSID of the network that this device belongs to.
+   *
+   * This method shall not be used in WAVE environment and
+   * here it will overloaded to log warn message
    */
   virtual Mac48Address GetBssid (void) const;
   /**
-   * SetLinkUpCallback and SetLinkDownCallback will be overwrited
+   * SetLinkUpCallback and SetLinkDownCallback will be overloaded
    * In OCB mode, stations can send packets directly whenever they want
-   * so the link is always up and never down even channel switch
+   * so the link is always up and never down even during channel switch
    */
   /**
    * \param linkUp the callback to invoke when the link becomes up.
@@ -119,7 +121,14 @@ public:
    * access is granted to this MAC.
    */
   virtual void Enqueue (Ptr<const Packet> packet, Mac48Address to);
-
+  /**
+   * \param cwmin the min contention window
+   * \param cwmax the max contention window
+   * \param aifsn the arbitration inter-frame space
+   * \param ac    the access category index
+   *
+   * configure EDCA queue parameters
+   */
   void ConfigureEdca (uint32_t cwmin, uint32_t cwmax, uint32_t aifsn, enum AcIndex ac);
 
 protected:

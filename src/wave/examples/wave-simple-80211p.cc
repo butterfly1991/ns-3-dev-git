@@ -20,6 +20,14 @@
  * Author: Junling Bu <linlinjavaer@gmail.com>
  *
  */
+/**
+ * This example shows basic construction of an 802.11p node.  Two nodes
+ * are constructed with 802.11p devices, and by default, one node sends a single
+ * packet to another node (the number of packets and interval between
+ * them can be configured by command-line arguments).  The example shows
+ * typical usage of the helper classes for this mode of WiFi (where "OCB" refers
+ * to "Outside the Context of a BSS")."
+ */
 #include "ns3/vector.h"
 #include "ns3/string.h"
 #include "ns3/socket.h"
@@ -44,7 +52,7 @@ NS_LOG_COMPONENT_DEFINE ("WifiSimpleOcb");
 
 using namespace ns3;
 /*
- * In WAVE module, here is no net device class named like "Wifi80211pNetDevice",
+ * In WAVE module, there is no net device class named like "Wifi80211pNetDevice",
  * instead, we need to use Wifi80211pHelper to create an object of
  * WifiNetDevice class.
  *
@@ -112,6 +120,9 @@ int main (int argc, char *argv[])
   YansWifiChannelHelper wifiChannel = YansWifiChannelHelper::Default ();
   Ptr<YansWifiChannel> channel = wifiChannel.Create ();
   wifiPhy.SetChannel (channel);
+  // ns-3 supports generate a pcap trace
+  wifiPhy.SetPcapDataLinkType (YansWifiPhyHelper::DLT_IEEE802_11);
+
   NqosWaveMacHelper wifi80211pMac = NqosWaveMacHelper::Default ();
   Wifi80211pHelper wifi80211p = Wifi80211pHelper::Default ();
   if (verbose)

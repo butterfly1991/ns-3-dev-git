@@ -32,7 +32,7 @@ namespace ns3 {
 ATTRIBUTE_HELPER_CPP (OrganizationIdentifier);
 
 OrganizationIdentifier::OrganizationIdentifier (void)
-  :     m_type (Unknown)
+  : m_type (Unknown)
 {
   NS_LOG_FUNCTION (this);
   m_type = Unknown;
@@ -62,6 +62,7 @@ OrganizationIdentifier::OrganizationIdentifier (const uint8_t *str, uint32_t len
 OrganizationIdentifier&
 OrganizationIdentifier::operator= (const OrganizationIdentifier& oi)
 {
+  NS_LOG_FUNCTION (this);
   this->m_type = oi.m_type;
   std::memcpy (this->m_oi, oi.m_oi, 5);
   return (*this);
@@ -69,12 +70,13 @@ OrganizationIdentifier::operator= (const OrganizationIdentifier& oi)
 
 OrganizationIdentifier::~OrganizationIdentifier (void)
 {
-
+  NS_LOG_FUNCTION (this);
 }
 
 uint8_t
 OrganizationIdentifier::GetManagementId (void) const
 {
+  NS_LOG_FUNCTION (this);
   NS_ASSERT (m_type == OUI36);
   return (m_oi[4] & 0x0f);
 }
@@ -82,12 +84,14 @@ OrganizationIdentifier::GetManagementId (void) const
 bool
 OrganizationIdentifier::IsNull (void) const
 {
+  NS_LOG_FUNCTION (this);
   return m_type == Unknown;
 }
 
 uint32_t
 OrganizationIdentifier::GetSerializedSize (void) const
 {
+  NS_LOG_FUNCTION (this);
   switch (m_type)
     {
     case OUI24:
@@ -104,18 +108,21 @@ OrganizationIdentifier::GetSerializedSize (void) const
 void
 OrganizationIdentifier::SetType (enum OrganizationIdentifierType type)
 {
+  NS_LOG_FUNCTION (this);
   m_type = type;
 }
 
 enum OrganizationIdentifier::OrganizationIdentifierType
 OrganizationIdentifier::GetType (void) const
 {
+  NS_LOG_FUNCTION (this);
   return m_type;
 }
 
 void
 OrganizationIdentifier::Serialize (Buffer::Iterator start) const
 {
+  NS_LOG_FUNCTION (this << &start);
   start.Write (m_oi, GetSerializedSize ());
 }
 
@@ -126,6 +133,7 @@ OrganizationIdentifier::Serialize (Buffer::Iterator start) const
 uint32_t
 OrganizationIdentifier::Deserialize (Buffer::Iterator start)
 {
+  NS_LOG_FUNCTION (this << &start);
   // first try to parse OUI24 with 3 bytes
   start.Read (m_oi,  3);
   for (std::vector<OrganizationIdentifier>::iterator  i = OrganizationIdentifiers.begin (); i != OrganizationIdentifiers.end (); ++i)
@@ -210,25 +218,28 @@ std::istream& operator >> (std::istream& is, const OrganizationIdentifier& oi)
 NS_OBJECT_ENSURE_REGISTERED (VendorSpecificActionHeader);
 
 VendorSpecificActionHeader::VendorSpecificActionHeader (void)
-  :     m_oi (),
+  : m_oi (),
     m_category (CATEGORY_OF_VSA)
 {
+  NS_LOG_FUNCTION (this);
 }
 
 VendorSpecificActionHeader::~VendorSpecificActionHeader (void)
 {
-
+  NS_LOG_FUNCTION (this);
 }
 
 void
 VendorSpecificActionHeader::SetOrganizationIdentifier (OrganizationIdentifier oi)
 {
+  NS_LOG_FUNCTION (this << oi);
   m_oi = oi;
 }
 
 OrganizationIdentifier
 VendorSpecificActionHeader::GetOrganizationIdentifier (void) const
 {
+  NS_LOG_FUNCTION (this);
   return m_oi;
 }
 
@@ -246,33 +257,38 @@ VendorSpecificActionHeader::GetTypeId (void)
 uint8_t
 VendorSpecificActionHeader::GetCategory (void) const
 {
+  NS_LOG_FUNCTION (this);
   return m_category;
 }
 
 TypeId
 VendorSpecificActionHeader::GetInstanceTypeId (void) const
 {
+  NS_LOG_FUNCTION (this);
   return GetTypeId ();
 }
 
 void
 VendorSpecificActionHeader::Print (std::ostream &os) const
 {
+  NS_LOG_FUNCTION (this << &os);
   os << "VendorSpecificActionHeader[ "
      << "category = 0x" << std::hex << (int)m_category
      << "organization identifier = " << m_oi
-     << std::endl;
+     << std::dec;
 }
 
 uint32_t
 VendorSpecificActionHeader::GetSerializedSize (void) const
 {
+  NS_LOG_FUNCTION (this);
   return sizeof(m_category) + m_oi.GetSerializedSize ();
 }
 
 void
 VendorSpecificActionHeader::Serialize (Buffer::Iterator start) const
 {
+  NS_LOG_FUNCTION (this << &start);
   start.WriteU8 (m_category);
   m_oi.Serialize (start);
 }
@@ -280,6 +296,7 @@ VendorSpecificActionHeader::Serialize (Buffer::Iterator start) const
 uint32_t
 VendorSpecificActionHeader::Deserialize (Buffer::Iterator start)
 {
+  NS_LOG_FUNCTION (this << &start);
   m_category = start.ReadU8 ();
   if (m_category != CATEGORY_OF_VSA)
     {
@@ -293,17 +310,18 @@ VendorSpecificActionHeader::Deserialize (Buffer::Iterator start)
 /********* VendorSpecificContentManager ***********/
 VendorSpecificContentManager::VendorSpecificContentManager (void)
 {
-
+  NS_LOG_FUNCTION (this);
 }
 
 VendorSpecificContentManager::~VendorSpecificContentManager (void)
 {
-
+  NS_LOG_FUNCTION (this);
 }
 
 void
 VendorSpecificContentManager::RegisterVscCallback (OrganizationIdentifier oi, VscCallback cb)
 {
+  NS_LOG_FUNCTION (this << oi << &cb);
   m_callbacks.insert (std::make_pair (oi, cb));
   OrganizationIdentifiers.push_back (oi);
 }
@@ -311,6 +329,7 @@ VendorSpecificContentManager::RegisterVscCallback (OrganizationIdentifier oi, Vs
 void
 VendorSpecificContentManager::DeregisterVscCallback (OrganizationIdentifier &oi)
 {
+  NS_LOG_FUNCTION (this << oi);
   m_callbacks.erase (oi);
 }
 
@@ -319,6 +338,7 @@ static VscCallback null_callback = MakeNullCallback<bool, Ptr<WifiMac>, const Or
 VscCallback
 VendorSpecificContentManager::FindVscCallback (OrganizationIdentifier &oi)
 {
+  NS_LOG_FUNCTION (this << oi);
   VscCallbacksI i;
   i = m_callbacks.find (oi);
   return (i == m_callbacks.end ()) ? null_callback : i->second;

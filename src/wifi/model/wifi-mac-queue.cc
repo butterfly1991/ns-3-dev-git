@@ -222,6 +222,7 @@ WifiMacQueue::IsEmpty (void)
 uint32_t
 WifiMacQueue::GetSize (void)
 {
+  Cleanup ();
   return m_size;
 }
 

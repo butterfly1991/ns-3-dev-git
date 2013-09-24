@@ -35,6 +35,7 @@ class VendorSpecificContentManager;
 /**
  * \brief the organization identifier is a public organizationally
  * unique identifier assigned by the IEEE.
+ * \ingroup wave
  *
  * Similar to protocol field of data packets that indicates which
  * entity of higher layer should handle received packets, Organization
@@ -104,9 +105,10 @@ std::istream& operator >> (std::istream& is, const OrganizationIdentifier& oi);
 const static uint8_t CATEGORY_OF_VSA = 127;
 
 /**
+ * \ingroup wave
  * See IEEE 802.11-2007 chapter 7.3.1.11 and 7.4.5
  * also IEEE 802.11p-2010 chapter 7.4.5
- * Although WifiActionHeader has defined in wifi mgt-header.h/.cc,
+ * Although WifiActionHeader has been defined in wifi mgt-header.h/.cc,
  * it is not a good way to inherit from it or add vendor specific action support.
  * The reason is Action field. Other Action frames contains Action field, and
  * the VSA frame contains OUI or variable OrganizationIdentifier instead of one byte Action field.
@@ -126,12 +128,18 @@ public:
   VendorSpecificActionHeader (void);
   virtual ~VendorSpecificActionHeader (void);
 
+  /**
+   * \param oi the OrganizationIdentifier of current VSA header
+   */
   void SetOrganizationIdentifier (OrganizationIdentifier oi);
+  /**
+   * \returns current OrganizationIdentifier of the VSA header
+   */
   OrganizationIdentifier GetOrganizationIdentifier (void) const;
   /**
    * the category field shall be CATEGORY_OF_VSA
    */
-  uint8_t GetCategory () const;
+  uint8_t GetCategory (void) const;
 
   static TypeId GetTypeId (void);
   virtual TypeId GetInstanceTypeId (void) const;

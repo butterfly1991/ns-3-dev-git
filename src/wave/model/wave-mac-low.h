@@ -26,7 +26,8 @@
 
 namespace ns3 {
 /**
- * This class allow higher layer control data rate and tx power level.
+ * \ingroup wave
+ * This class allows higher layer control data rate and tx power level.
  * If higher layer do not select, it will select by WifiRemoteStationManager
  * of MAC layer;
  * If higher layer selects tx arguments without adapter set, the data rate
