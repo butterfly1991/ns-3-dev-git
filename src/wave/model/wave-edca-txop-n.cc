@@ -36,11 +36,6 @@ NS_LOG_COMPONENT_DEFINE ("WaveEdcaTxopN");
 
 namespace ns3 {
 
-
-
-
-
-
 NS_OBJECT_ENSURE_REGISTERED (WaveEdcaTxopN);
 
 TypeId
@@ -204,4 +199,5 @@ WaveEdcaTxopN::SwitchToChannel (uint32_t channelNumber)
 
   NS_ASSERT (m_currentPacket == 0);
 }
+
 } // namespace ns3

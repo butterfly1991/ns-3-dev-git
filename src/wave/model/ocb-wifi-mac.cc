@@ -128,7 +128,7 @@ OcbWifiMac::SetSsid (Ssid ssid)
 Ssid
 OcbWifiMac::GetSsid (void) const
 {
-  NS_LOG_WARN ("in OCB mode we should not call GetSsid");
+	NS_FATAL_ERROR ("in OCB mode we should not call GetSsid");
   // we really do not want to return ssid, however we have to provide
   return RegularWifiMac::GetSsid ();
 }
@@ -137,13 +137,13 @@ OcbWifiMac::GetSsid (void) const
 void
 OcbWifiMac::SetBssid (Mac48Address bssid)
 {
-  NS_LOG_WARN ("in OCB mode we should not call SetSsid");
+	NS_FATAL_ERROR ("in OCB mode we should not call SetSsid");
 }
 
 Mac48Address
 OcbWifiMac::GetBssid (void) const
 {
-  NS_LOG_WARN ("in OCB mode we should not call GetBssid");
+	NS_FATAL_ERROR ("in OCB mode we should not call GetBssid");
   return WILDCARD_BSSID;
 }
 
@@ -164,7 +164,7 @@ OcbWifiMac::SetLinkDownCallback (Callback<void> linkDown)
 {
   NS_LOG_FUNCTION (this << &linkDown);
   RegularWifiMac::SetLinkDownCallback (linkDown);
-  NS_LOG_DEBUG ("in OCB mode the like will never down, so linkDown will never be called");
+  NS_FATAL_ERROR ("in OCB mode the like will never down, so linkDown will never be called");
 }
 
 void
@@ -371,9 +371,7 @@ OcbWifiMac::FinishConfigureStandard (enum WifiPhyStandard standard)
   ConfigureEdca (cwmin, cwmax, 6, AC_BE);
   ConfigureEdca (cwmin, cwmax, 9, AC_BK);
 
-}
-
-void
+}void
 OcbWifiMac::NotifyBusy (Time duration)
 {
   m_dcfManager->NotifyMaybeCcaBusyStartNow (duration);
@@ -397,5 +395,6 @@ OcbWifiMac::SetWaveEdcaQueue (AcIndex ac, Ptr<EdcaTxopN> edca)
   edca->SetWifiRemoteStationManager (m_stationManager);
   m_edca.insert (std::make_pair (ac, edca));
 }
+
 
 } // namespace ns3

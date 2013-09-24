@@ -134,6 +134,7 @@ public:
   void SwitchToChannel (uint32_t channelNumber);
 
   void SetChannelScheduler (Ptr<ChannelScheduler> scheduler);
+
 private:
   virtual void DoDispose (void);
   virtual void DoInitialize (void);
