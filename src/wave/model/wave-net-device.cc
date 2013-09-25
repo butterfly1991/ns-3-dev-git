@@ -160,6 +160,7 @@ WaveNetDevice::StartVsa (const VsaInfo & vsaInfo)
 bool
 WaveNetDevice::DoReceiveVsc (Ptr<WifiMac> mac, const OrganizationIdentifier &oi, Ptr<const Packet> vsc, const Address &src)
 {
+  NS_LOG_FUNCTION (this << mac << oi << vsc <<src);
   NS_ASSERT (oi == oi_1609);
   uint32_t channelNumber = WifiNetDevice::GetPhy ()->GetChannelNumber ();
   // we should ensure that channel access resource is assigned.
@@ -188,6 +189,7 @@ WaveNetDevice::StopVsa (uint32_t channelNumber)
 void
 WaveNetDevice::SetVsaReceiveCallback (WaveCallback waveCallback)
 {
+  NS_LOG_FUNCTION (this);
   m_waveVscReceived = waveCallback;
 }
 bool
@@ -415,6 +417,7 @@ WaveNetDevice::AddLinkChangeCallback (Callback<void> callback)
 bool
 WaveNetDevice::NeedsArp (void) const
 {
+  NS_LOG_FUNCTION (this);
   return true;
 }
 
@@ -459,12 +462,14 @@ WaveNetDevice::SendFrom (Ptr<Packet> packet, const Address& source, const Addres
 bool
 WaveNetDevice::SupportsSendFrom (void) const
 {
+  NS_LOG_FUNCTION (this);
   return false;
 }
 
 void
 WaveNetDevice::WaveForwardUp (Ptr<Packet> packet, Mac48Address from, Mac48Address to)
 {
+  NS_LOG_FUNCTION (this << packet << from << to);
   // if channel access has not been assigned, we not allow to receive
   if (m_channelScheduler->GetAccess () == ChannelScheduler::NoAccess)
     {

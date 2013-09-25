@@ -89,112 +89,134 @@ ChannelCoordinator::DoInitialize ()
 void
 ChannelCoordinator::SetCchInterval (Time cchInterval)
 {
+  NS_LOG_FUNCTION (this << cchInterval);
   m_cchInterval = cchInterval;
 }
 Time
 ChannelCoordinator::GetCchInterval (void) const
 {
+  NS_LOG_FUNCTION (this);
   return m_cchInterval;
 }
 void
 ChannelCoordinator::SetSchInterval (Time schInterval)
 {
+  NS_LOG_FUNCTION (this << schInterval);
   m_schInterval = schInterval;
 }
 Time
 ChannelCoordinator::GetSchInterval (void) const
 {
+  NS_LOG_FUNCTION (this);
   return m_schInterval;
 }
 void
 ChannelCoordinator::SetSyncTolerance (Time syncTolerance)
 {
+  NS_LOG_FUNCTION (this << syncTolerance);
   m_syncTolerance = syncTolerance;
 }
 Time
 ChannelCoordinator::GetSyncTolerance (void) const
 {
+  NS_LOG_FUNCTION (this);
   return m_syncTolerance;
 }
 void
 ChannelCoordinator::SetMaxSwitchTime (Time maxSwitchTime)
 {
+  NS_LOG_FUNCTION (this << maxSwitchTime);
   m_maxSwitchTime = maxSwitchTime;
 }
 Time
 ChannelCoordinator::GetMaxSwitchTime (void) const
 {
+  NS_LOG_FUNCTION (this);
   return m_maxSwitchTime;
 }
 Time
 ChannelCoordinator::GetSyncInterval (void) const
 {
+  NS_LOG_FUNCTION (this);
   return GetCchInterval () + GetSchInterval ();
 }
 Time
 ChannelCoordinator::GetGuardInterval (void) const
 {
+  NS_LOG_FUNCTION (this);
   return GetSyncTolerance () + GetMaxSwitchTime ();
 }
 Time
 ChannelCoordinator::GetDefaultCchInterval (void)
 {
+  NS_LOG_FUNCTION_NOARGS ();
   return MilliSeconds (DEFAULT_CCH_INTERVAL);
 }
 Time
 ChannelCoordinator::GetDefaultSchInterval (void)
 {
+  NS_LOG_FUNCTION_NOARGS ();
   return MilliSeconds (DEFAULT_SCH_INTERVAL);
 }
 Time
 ChannelCoordinator::GetDefaultSyncTolerance (void)
 {
+  NS_LOG_FUNCTION_NOARGS ();
   return MilliSeconds (DEFAULT_SYNC_TOLERANCE);
 }
 Time
 ChannelCoordinator::GetDefaultMaxSwitchTime (void)
 {
+  NS_LOG_FUNCTION_NOARGS ();
   return MilliSeconds (DEFAULT_MAC_SWITCH_TIME);
 }
  Time
 ChannelCoordinator::GetSchSlot (void) const
 {
+  NS_LOG_FUNCTION (this);
   return m_schInterval - (m_syncTolerance + m_maxSwitchTime);
 }
  Time
 ChannelCoordinator::GetCchSlot (void) const
 {
+  NS_LOG_FUNCTION (this);
   return m_cchInterval - (m_syncTolerance + m_maxSwitchTime);
 }
  bool
 ChannelCoordinator::IsSchInterval (void) const
 {
+  NS_LOG_FUNCTION (this);
  return IsSchInterval (Seconds (0));
 }
 bool
 ChannelCoordinator::IsCchInterval (Time duration) const
 {
+  NS_LOG_FUNCTION (this << duration);
   Time future = GetIntervalTime (duration);
   return (future < m_cchInterval);
 }
  bool
-ChannelCoordinator::IsCchInterval () const
+ChannelCoordinator::IsCchInterval (void) const
 {
+  NS_LOG_FUNCTION (this);
   return IsCchInterval (Seconds (0));
 }
 bool
 ChannelCoordinator::IsSchInterval (Time duration) const
 {
+  NS_LOG_FUNCTION (this << duration);
   return !IsCchInterval (duration);
 }
  Time
 ChannelCoordinator::NeedTimeToSchInterval (void) const
 {
+  NS_LOG_FUNCTION (this);
   return NeedTimeToSchInterval (Seconds (0));
 }
 Time
 ChannelCoordinator::NeedTimeToSchInterval (Time duration) const
 {
+  NS_LOG_FUNCTION (this << duration);
   if (IsSchInterval (duration))
     {
       return Time (0);
@@ -204,11 +226,13 @@ ChannelCoordinator::NeedTimeToSchInterval (Time duration) const
  Time
 ChannelCoordinator::NeedTimeToCchInterval (void) const
 {
+  NS_LOG_FUNCTION (this);
   return NeedTimeToCchInterval (Seconds (0));
 }
 Time
 ChannelCoordinator::NeedTimeToCchInterval (Time duration) const
 {
+  NS_LOG_FUNCTION (this << duration);
   if (IsCchInterval (duration))
     {
       return Time (0);
@@ -218,11 +242,13 @@ ChannelCoordinator::NeedTimeToCchInterval (Time duration) const
  Time
 ChannelCoordinator::NeedTimeToGuardInterval (void) const
 {
+  NS_LOG_FUNCTION (this);
   return NeedTimeToGuardInterval (Seconds (0));
 }
 Time
 ChannelCoordinator::NeedTimeToGuardInterval (Time duration) const
 {
+  NS_LOG_FUNCTION (this << duration);
   if (IsCchInterval (duration))
     {
       return (GetCchInterval () - GetIntervalTime (duration));
@@ -233,11 +259,13 @@ ChannelCoordinator::NeedTimeToGuardInterval (Time duration) const
  bool
 ChannelCoordinator::IsInSyncTolerance (void) const
 {
+  NS_LOG_FUNCTION (this);
   return IsInSyncTolerance (Seconds (0));
 }
 bool
 ChannelCoordinator::IsInSyncTolerance (Time duration) const
 {
+  NS_LOG_FUNCTION (this << duration);
   Time future = GetIntervalTime (duration);
   // interval is either in CchInterval or SchInterval
   Time interval = future < m_cchInterval ? future : future - m_cchInterval;
@@ -255,12 +283,14 @@ ChannelCoordinator::IsInSyncTolerance (Time duration) const
 }
 bool
 ChannelCoordinator::IsInMaxSwitchTime (void) const
- {
-   return IsInMaxSwitchTime (Seconds (0));
- }
+{
+  NS_LOG_FUNCTION (this);
+  return IsInMaxSwitchTime (Seconds (0));
+}
 bool
 ChannelCoordinator::IsInMaxSwitchTime (Time duration) const
 {
+  NS_LOG_FUNCTION (this << duration);
   Time future = GetIntervalTime (duration);
   // interval is either in CchInterval or SchInterval
   Time interval = future < m_cchInterval ? future : future - m_cchInterval;
@@ -275,11 +305,13 @@ ChannelCoordinator::IsInMaxSwitchTime (Time duration) const
  bool
 ChannelCoordinator::IsGuardInterval (void) const
 {
+  NS_LOG_FUNCTION (this);
   return IsGuardInterval (Seconds (0));
 }
 bool
 ChannelCoordinator::IsGuardInterval (Time duration) const
 {
+  NS_LOG_FUNCTION (this << duration);
   Time future = GetIntervalTime (duration);
   // interval is either in CchInterval or SchInterval
   Time interval = future < m_cchInterval ? future : future - m_cchInterval;
@@ -288,11 +320,13 @@ ChannelCoordinator::IsGuardInterval (Time duration) const
 Time
 ChannelCoordinator::GetIntervalTime (void) const
 {
+  NS_LOG_FUNCTION (this);
   return GetIntervalTime (Seconds (0));
 }
 Time
 ChannelCoordinator::GetIntervalTime (Time duration) const
 {
+  NS_LOG_FUNCTION (this << duration);
   Time future = Now () + duration;
   Time sync = GetSyncInterval ();
   uint32_t n = future.GetMilliSeconds () / sync.GetMilliSeconds ();
@@ -302,11 +336,12 @@ ChannelCoordinator::GetIntervalTime (Time duration) const
 void
 ChannelCoordinator::RegisterListener (ChannelCoordinationListener *listener)
 {
+  NS_LOG_FUNCTION (this << listener);
   m_listeners.push_back (listener);
 }
 
 void
-ChannelCoordinator::Start ()
+ChannelCoordinator::Start (void)
 {
   NS_LOG_FUNCTION (this);
   Time now = GetIntervalTime ();
@@ -332,7 +367,7 @@ ChannelCoordinator::Start ()
     }
 }
 void
-ChannelCoordinator::Stop ()
+ChannelCoordinator::Stop (void)
 {
   NS_LOG_FUNCTION (this);
   if (!m_channelCoordinate.IsExpired ())
@@ -342,14 +377,16 @@ ChannelCoordinator::Stop ()
   m_guardCount = 0;
 }
 bool
-ChannelCoordinator::IsStopped () const
+ChannelCoordinator::IsStopped (void) const
 {
+  NS_LOG_FUNCTION (this);
   return m_guardCount == 0;
 }
 
 void
-ChannelCoordinator::NotifySch ()
+ChannelCoordinator::NotifySch (void)
 {
+  NS_LOG_FUNCTION (this);
   m_channelCoordinate = Simulator::Schedule (GetSchSlot (), &ChannelCoordinator::NotifyGuard, this);
   for (ListenersI i = m_listeners.begin (); i != m_listeners.end (); ++i)
     {
@@ -357,8 +394,9 @@ ChannelCoordinator::NotifySch ()
     }
 }
 void
-ChannelCoordinator::NotifyCch ()
+ChannelCoordinator::NotifyCch (void)
 {
+  NS_LOG_FUNCTION (this);
   m_channelCoordinate = Simulator::Schedule (GetCchSlot (), &ChannelCoordinator::NotifyGuard, this);
   for (ListenersI i = m_listeners.begin (); i != m_listeners.end (); ++i)
     {
@@ -366,8 +404,9 @@ ChannelCoordinator::NotifyCch ()
     }
 }
 void
-ChannelCoordinator::NotifyGuard ()
+ChannelCoordinator::NotifyGuard (void)
 {
+  NS_LOG_FUNCTION (this);
   Time guardSlot = GetGuardInterval ();
   bool inCchi = ((++m_guardCount % 2) == 0);
   if (inCchi)

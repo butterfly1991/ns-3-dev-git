@@ -21,7 +21,10 @@
  */
 #include "expire-time-tag.h"
 #include "ns3/tag.h"
+#include "ns3/log.h"
 #include "ns3/uinteger.h"
+
+NS_LOG_COMPONENT_DEFINE ("ExpireTimeTag");
 
 namespace ns3 {
 
@@ -39,48 +42,58 @@ ExpireTimeTag::GetTypeId (void)
 TypeId
 ExpireTimeTag::GetInstanceTypeId (void) const
 {
+  NS_LOG_FUNCTION (this);
   return GetTypeId ();
 }
 
 ExpireTimeTag::ExpireTimeTag (void)
   : m_expire (500)
 {
+  NS_LOG_FUNCTION (this);
 }
 ExpireTimeTag::ExpireTimeTag (uint32_t expire)
   : m_expire (expire)
 {
+  NS_LOG_FUNCTION (this);
 }
 ExpireTimeTag::~ExpireTimeTag (void)
 {
+  NS_LOG_FUNCTION (this);
 }
 uint32_t
 ExpireTimeTag::GetSerializedSize (void) const
 {
+  NS_LOG_FUNCTION (this);
   return sizeof (uint32_t);
 }
 void
 ExpireTimeTag::Serialize (TagBuffer i) const
 {
+  NS_LOG_FUNCTION (this << &i);
   i.WriteU32 (m_expire);
 }
 void
 ExpireTimeTag::Deserialize (TagBuffer i)
 {
+  NS_LOG_FUNCTION (this << &i);
   m_expire = i.ReadU32 ();
 }
 void
 ExpireTimeTag::Print (std::ostream &os) const
 {
+  NS_LOG_FUNCTION (this << &os);
   os << "expire = " << m_expire << "ms";
 }
 void
 ExpireTimeTag::SetExpireTime (uint32_t expire)
 {
+  NS_LOG_FUNCTION (this);
   m_expire = expire;
 }
 uint32_t
 ExpireTimeTag::GetExpireTime (void) const
 {
+  NS_LOG_FUNCTION (this);
   return m_expire;
 }
 

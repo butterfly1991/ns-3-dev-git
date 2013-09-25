@@ -135,33 +135,39 @@ ChannelScheduler::DoDispose (void)
 void
 ChannelScheduler::SetWaveNetDevice (Ptr<WaveNetDevice> device)
 {
+  NS_LOG_FUNCTION (this << device);
   m_device = device;
 }
 
 void
 ChannelScheduler::SetChannelManager (Ptr<ChannelManager> manager)
 {
+  NS_LOG_FUNCTION (this << manager);
   m_manager = manager;
 }
 void
 ChannelScheduler::SetChannelCoodinator (Ptr<ChannelCoordinator> coordinator)
 {
+  NS_LOG_FUNCTION (this << coordinator);
   m_coordinator = coordinator;
 }
 Ptr<ChannelCoordinator>
 ChannelScheduler::GetChannelCoodinator (void)
 {
+  NS_LOG_FUNCTION (this);
   return m_coordinator;
 }
 Ptr<ChannelManager>
 ChannelScheduler::GetChannelManager (void)
 {
+  NS_LOG_FUNCTION (this);
   return m_manager;
 }
 
 bool
 ChannelScheduler::IsAccessAssigned (uint32_t channelNumber) const
 {
+  NS_LOG_FUNCTION (this << channelNumber);
   switch (m_channelAccess)
     {
     // continuous access is similar to extended access except extend operation
@@ -181,11 +187,13 @@ ChannelScheduler::IsAccessAssigned (uint32_t channelNumber) const
 bool
 ChannelScheduler::IsAccessAssigned (void) const
 {
+  NS_LOG_FUNCTION (this);
   return (GetAccess () != NoAccess);
 }
 enum ChannelScheduler::ChannelAccess
 ChannelScheduler::GetAccess (uint32_t channelNumber) const
 {
+  NS_LOG_FUNCTION (this << channelNumber);
   if (channelNumber == CCH && m_channelAccess == AlternatingAccess)
     {
       return AlternatingAccess;
@@ -199,11 +207,13 @@ ChannelScheduler::GetAccess (uint32_t channelNumber) const
 enum ChannelScheduler::ChannelAccess
 ChannelScheduler::GetAccess (void) const
 {
+  NS_LOG_FUNCTION (this);
   return m_channelAccess;
 }
 uint32_t
-ChannelScheduler::GetChannel () const
+ChannelScheduler::GetChannel (void) const
 {
+  NS_LOG_FUNCTION (this);
   return m_channelNumber;
 }
 
@@ -390,6 +400,7 @@ ChannelScheduler::Release (uint32_t channelNumber)
 void
 ChannelScheduler::SwitchQueueToChannel (uint32_t channelNumber)
 {
+  NS_LOG_FUNCTION (this << channelNumber);
   for (EdcaWaveQueuesI i = m_edcaQueues.begin (); i != m_edcaQueues.end (); ++i)
     {
       i->second->SwitchToChannel (channelNumber);
@@ -398,6 +409,7 @@ ChannelScheduler::SwitchQueueToChannel (uint32_t channelNumber)
 void
 ChannelScheduler::QueueStartAccess (void)
 {
+  NS_LOG_FUNCTION (this);
   for (EdcaWaveQueuesI i = m_edcaQueues.begin (); i != m_edcaQueues.end (); ++i)
     {
       i->second->StartAccessIfNeeded ();

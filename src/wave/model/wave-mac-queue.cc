@@ -20,8 +20,11 @@
  *         Junling Bu <linlinjavaer@gmail.com>
  */
 #include "ns3/simulator.h"
+#include "ns3/log.h"
 #include "wave-mac-queue.h"
 #include "expire-time-tag.h"
+
+NS_LOG_COMPONENT_DEFINE ("WaveMacQueue");
 
 namespace ns3 {
 
@@ -38,13 +41,16 @@ WaveMacQueue::GetTypeId (void)
 }
 WaveMacQueue::WaveMacQueue (void)
 {
+  NS_LOG_FUNCTION (this);
 }
 WaveMacQueue::~WaveMacQueue (void)
 {
+  NS_LOG_FUNCTION (this);
 }
 void
 WaveMacQueue::Cleanup (void)
 {
+  NS_LOG_FUNCTION (this);
   if (m_queue.empty ())
     {
       return;

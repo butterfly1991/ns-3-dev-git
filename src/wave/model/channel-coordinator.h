@@ -31,7 +31,7 @@ namespace ns3 {
 class ChannelCoordinationListener
 {
 public:
-  virtual ~ChannelCoordinationListener ()
+  virtual ~ChannelCoordinationListener (void)
   {
   }
 
@@ -236,9 +236,12 @@ public:
 protected:
   virtual void DoInitialize (void);
 private:
-  void NotifySch ();
-  void NotifyCch ();
-  void NotifyGuard ();
+  // when channel coordination is started by Start method, then NotifySch,
+  // NotifyCch, and NotifyGuard will be called repeatedly to generate
+  // channel coordination events.
+  void NotifySch (void);
+  void NotifyCch (void);
+  void NotifyGuard (void);
   /**
    * get SCH channel access time, default 46ms
    */

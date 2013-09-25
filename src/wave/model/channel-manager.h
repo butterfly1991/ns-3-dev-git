@@ -88,11 +88,23 @@ class ChannelManager : public Object
 {
 public:
   static TypeId GetTypeId (void);
-  ChannelManager ();
-  virtual ~ChannelManager ();
+  ChannelManager (void);
+  virtual ~ChannelManager (void);
 
+  /**
+   * \param channelNumber the specific channel
+   * \return whether channel is valid CCH channel
+   */
   static bool IsCch (uint32_t channelNumber);
+  /**
+   * \param channelNumber the specific channel
+   * \return whether channel is valid SCH channel
+   */
   static bool IsSch (uint32_t channelNumber);
+  /**
+   * \param channelNumber the specific channel
+   * \return whether channel is valid WAVE channel
+   */
   static bool IsWaveChannel (uint32_t channelNumber);
   /**
    * enum ChannelState - Channel State indicate channel access assignment
@@ -111,8 +123,17 @@ public:
     CHANNEL_ACTIVE,
     CHANNEL_INACTIVE,
   };
+  /**
+   * \param channelNumber the specific channel
+   * \return current state of the channel
+   */
   enum ChannelState GetState (uint32_t channelNumber);
-  void SetState (uint32_t channelNumber, enum ChannelState);
+  /**
+   * \param channelNumber the specific channel
+   * \param state the specific channel
+   * set current state of the channe
+   */
+  void SetState (uint32_t channelNumber, enum ChannelState state);
   /**
    * \param channelNumber the specific channel
    * \return whether channel is active now

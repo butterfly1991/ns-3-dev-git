@@ -50,22 +50,25 @@ WaveEdcaTxopN::GetTypeId (void)
 
 WaveEdcaTxopN::WaveEdcaTxopN (void)
 {
+  NS_LOG_FUNCTION (this);
 }
 
 WaveEdcaTxopN::~WaveEdcaTxopN (void)
 {
-
+  NS_LOG_FUNCTION (this);
 }
 void
 WaveEdcaTxopN::DoDispose (void)
 {
-  EdcaTxopN::DoDispose ();
+  NS_LOG_FUNCTION (this);
   m_queues.clear ();
   m_scheduler = 0;
+  EdcaTxopN::DoDispose ();
 }
 void
 WaveEdcaTxopN::DoInitialize (void)
 {
+  NS_LOG_FUNCTION (this);
   EdcaTxopN::DoInitialize ();
   m_queues.insert (std::make_pair (CCH, CreateObject<WaveMacQueue> ()));
   m_queue = m_queues.find (CCH)->second;
@@ -76,6 +79,7 @@ WaveEdcaTxopN::DoInitialize (void)
 void
 WaveEdcaTxopN::SetChannelScheduler (Ptr<ChannelScheduler> scheduler)
 {
+  NS_LOG_FUNCTION (this << scheduler);
   m_scheduler = scheduler;
 }
 
@@ -85,6 +89,7 @@ WaveEdcaTxopN::StartTransmission (Ptr<const Packet> packet,
                                   MacLowTransmissionParameters params,
                                   MacLowTransmissionListener *listener)
 {
+  NS_LOG_FUNCTION (this);
   // if current channel access is not AlternatingAccess, just do as MacLow.
   if (m_scheduler->GetAccess () != ChannelScheduler::AlternatingAccess)
     {
@@ -112,6 +117,7 @@ WaveEdcaTxopN::StartTransmission (Ptr<const Packet> packet,
 void
 WaveEdcaTxopN::NotifyChannelSwitching (void)
 {
+  NS_LOG_FUNCTION (this);
   switch (m_scheduler->GetAccess ())
     {
     case ChannelScheduler::ContinuousAccess:
@@ -138,6 +144,7 @@ WaveEdcaTxopN::NotifyChannelSwitching (void)
 void
 WaveEdcaTxopN::Queue (Ptr<const Packet> packet, const WifiMacHeader &hdr)
 {
+  NS_LOG_FUNCTION (this);
   ChannelTag tag;
   bool result;
   uint32_t channelNumber;
@@ -173,6 +180,7 @@ WaveEdcaTxopN::Queue (Ptr<const Packet> packet, const WifiMacHeader &hdr)
 void
 WaveEdcaTxopN::FlushAlternatingAccess (void)
 {
+  NS_LOG_FUNCTION (this);
   NS_ASSERT (m_scheduler->GetAccess () == ChannelScheduler::AlternatingAccess);
   // first flush CCH queue
   Ptr<WifiMacQueue> queue = m_queues.find (CCH)->second;
@@ -186,6 +194,7 @@ WaveEdcaTxopN::FlushAlternatingAccess (void)
 void
 WaveEdcaTxopN::SwitchToChannel (uint32_t channelNumber)
 {
+  NS_LOG_FUNCTION (this);
   std::map<uint32_t,Ptr<WifiMacQueue> >::iterator i = m_queues.find (channelNumber);
   if (i == m_queues.end ())
     {
