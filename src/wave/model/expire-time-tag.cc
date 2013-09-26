@@ -87,7 +87,7 @@ ExpireTimeTag::Print (std::ostream &os) const
 void
 ExpireTimeTag::SetExpireTime (uint32_t expire)
 {
-  NS_LOG_FUNCTION (this);
+  NS_LOG_FUNCTION (this << expire);
   m_expire = expire;
 }
 uint32_t

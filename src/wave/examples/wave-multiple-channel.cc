@@ -37,13 +37,12 @@ using namespace ns3;
 
 NS_LOG_COMPONENT_DEFINE ("WaveMultipleChannel");
 
-namespace ns3 {
 class StatsTag : public Tag
 {
 public:
   StatsTag (void)
     : m_packetId (0),
-      m_sendTime (Seconds (0.0))
+      m_sendTime (Seconds (0))
   {
   }
   StatsTag (uint32_t packetId, Time sendTime)
@@ -112,23 +111,24 @@ StatsTag::Print (std::ostream &os) const
   os << "packet=" << m_packetId << " sendTime=" << m_sendTime;
 }
 
-} // namespace ns3
 /**
  * (1) some nodes are in constant speed mobility, every node sends
- * two types of packets. the first type is a small size with 200 bytes
- * which models beacon and safety message, this packet is broadcasted
- * to neighbor nodes;the second type is a big size with 1500 bytes which
- * models information or entertainment message, this packet is sent to
- * individual destination node (this may cause ACK and retransmission).
+ * two types of packets.
+ * the first type is a small size with 200 bytes which models beacon
+ * and safety message, this packet is broadcasted to neighbor nodes
+ * (there will no ACK and retransmission);
+ * the second type is a big size with 1500 bytes which models information
+ * or entertainment message, this packet is sent to individual destination
+ * node (this may cause ACK and retransmission).
  *
  * (2) Here are four configurations:
- * - a the first is every node sends packets randomly in CCH channel with continuous access.
- * - b the second is every node sends packets randomly with alternating access.
- *   Safety packets are sent in CCH channel, non-safety packets are sent in SCH channel.
- * - c the third is similar to the second. But Safety packets will be sent randomly in CCH interval,
+ * a - the first is every node sends packets randomly in SCH1 channel with continuous access.
+ * b - the second is every node sends packets randomly with alternating access.
+ *   Safety packets are sent to CCH channel, and non-safety packets are sent to SCH1 channel.
+ * c - the third is similar to the second. But Safety packets will be sent randomly in CCH interval,
  *   non-safety packets will be sent randomly in SCH interval.
  *   This is the best situation of configuration 2 which models higher layer be aware of lower layer.
- * - d the fourth is also similar to the second. But Safety packets will be sent randomly in SCH interval,
+ * d - the fourth is also similar to the second. But Safety packets will be sent randomly in SCH interval,
  *   non-safety packets will be sent randomly in CCH interval.
  *   This is the worst situation of configuration 2 which makes packets get high queue delay.
  *
@@ -137,16 +137,9 @@ StatsTag::Print (std::ostream &os) const
  * (4) The output is the delay of safety packets, the delay of non-safety packets, the throughput of
  * safety packets, and the throughput of safety packets.
  *
- * (5) I think the result can show the advantage and disadvantage of 1609.4.
- * Normally to divide safety and non-safety to different channels can help improve success probability of
- * safety message than send them on only one channel. Suppose that if send frequency of safety message and
- * non-safety message are same, but because of non-safety-message has bigger size, so will cost more channel
- * time, so I think the delay and throughput of safety message in (b) should be better than in (a).
- * The best performance could be find is in (c) that every safety message is sent in CCHI and non-safety message
- * is sent in SCHI, so the queue delay of safety message is min than in (b) and (d),  and the contending at the
- * end of guard interval will also not serious than others and cause throughput better.
- * The worst performance could be find in (d) that every safety message is sent in SCHI and non-safety message
- * is sent in CCHI. And this performance may be worse than (a).
+ * REDO: the packets are sent from second 0 to second 99, and the simulation will be stopped at second 100.
+ * But when simulation is stopped, some packets may be queued in wave mac queue. These queued packets should
+ * not be used for stats, but here they will be treated as packet loss.
  */
 const static uint16_t IPv4_PROT_NUMBER = 0x0800;
 const static uint16_t WSMP_PROT_NUMBER = 0x88DC;
@@ -154,7 +147,7 @@ const static uint16_t WSMP_PROT_NUMBER = 0x88DC;
 class MultipleChannelExperiment
 {
 public:
-  MultipleChannelExperiment ();
+  MultipleChannelExperiment (void);
 
   bool Configure (int argc, char **argv);
   void Usage (void);
@@ -169,10 +162,10 @@ private:
   // we treat IP packets as non-safety message
   void SendIpPackets (Ptr<WaveNetDevice> sender);
 
-  void ConfigurationA ();
-  void ConfigurationB ();
-  void ConfigurationC ();
-  void ConfiguartionD ();
+  void ConfigurationA (void);
+  void ConfigurationB (void);
+  void ConfigurationC (void);
+  void ConfiguartionD (void);
 
   bool Receive (Ptr<NetDevice> dev, Ptr<const Packet> pkt, uint16_t mode, const Address &sender);
 
@@ -211,27 +204,24 @@ private:
   uint64_t timeSafety;        // us
   uint64_t timeNonSafety;     // us
 
+  bool createTraceFile;
   std::ofstream outfile;
 };
 
-MultipleChannelExperiment::MultipleChannelExperiment ()
-  : nodesNumber (20),
-    frequencySafety (10),
-    // 10Hz, 100ms send one safety packet
-    frequencyNonSafety (10),
-    // 10Hz, 100ms send one non-safety packet
-    simulationTime (100),
-    // make it run 100s
-    sizeSafety (200),
-    // 100 bytes small size
-    sizeNonSafety (1500),
-    // 1500 bytes big size
+MultipleChannelExperiment::MultipleChannelExperiment (void)
+  : nodesNumber (20),           // 20 nodes
+    frequencySafety (10),       // 10Hz, 100ms send one safety packet
+    frequencyNonSafety (10),    // 10Hz, 100ms send one non-safety packet
+    simulationTime (100),       // make it run 100s
+    sizeSafety (200),           // 100 bytes small size
+    sizeNonSafety (1500),       // 1500 bytes big size
     safetyPacketID (0),
     nonSafetyPacketID (0),
     receiveSafety (0),
     receiveNonSafety (0),
     timeSafety (0),
-    timeNonSafety (0)
+    timeNonSafety (0),
+    createTraceFile (false)
 {
 }
 
@@ -239,12 +229,13 @@ bool
 MultipleChannelExperiment::Configure (int argc, char **argv)
 {
   CommandLine cmd;
-  cmd.AddValue ("numNodes", "Number of nodes.", nodesNumber);
+  cmd.AddValue ("nodes", "Number of nodes.", nodesNumber);
   cmd.AddValue ("time", "Simulation time, s.", simulationTime);
   cmd.AddValue ("sizeSafety", "Size of safety packet, bytes.", sizeSafety);
   cmd.AddValue ("sizeNonSafety", "Size of non-safety packet, bytes.", sizeNonSafety);
   cmd.AddValue ("frequencySafety", "Frequency of sending safety packets, Hz.", frequencySafety);
   cmd.AddValue ("frequencyNonSafety", "Frequency of sending non-safety packets, Hz.", frequencyNonSafety);
+  cmd.AddValue ("createTraceFile", "create trace file with 4 different configuration", createTraceFile);
 
   cmd.Parse (argc, argv);
   return true;
@@ -253,17 +244,32 @@ void
 MultipleChannelExperiment::Usage (void)
 {
   std::cout << "usage:"
-		    << "./waf --run=\"wave-multiple-channel \""
+		    << "./waf --run=\"wave-multiple-channel --nodes=20 --time=100 --sizeSafety=200 "
+		    		"--sizeNonSafety=1500 --frequencySafety=10 --frequencyNonSafety=10 \""
             << std::endl;
 }
 
 void
 MultipleChannelExperiment::CreateWaveNodes (void)
 {
+  NS_LOG_FUNCTION (this);
+
+  RngSeedManager::SetSeed (1);
+  RngSeedManager::SetRun (17);
+
   nodes = NodeContainer ();
   nodes.Create (nodesNumber);
 
   // Create static grid
+  // here we use static mobility model for two reasons
+  // (a) since the mobility model of ns3 is mainly used for MANET, we can not ensure
+  // whether they are suitable for VANET. From some papers, considering real traffic
+  // pattern is required for VANET simulation.
+  // (b) Here is no network layer protocol used to avoid causing the impact on MAC layer,
+  // which will cause packets can not be routed. So if two nodes is far from each other,
+  // the packets will not be received by phy layer, but here we want to show the impact of
+  // MAC layer of 1609.4, like low PDR caused by contending at the guard interval of channel.
+  // So we need every node is in transmission range.
   MobilityHelper mobility;
   mobility.SetPositionAllocator ("ns3::GridPositionAllocator");
   mobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
@@ -293,6 +299,7 @@ MultipleChannelExperiment::CreateWaveNodes (void)
       devices.Get (i)->SetReceiveCallback (MakeCallback (&MultipleChannelExperiment::Receive,this));
     }
 
+  // used for sending packets randomly
   rngSafety = CreateObject<UniformRandomVariable> ();
   rngSafety->SetStream (1);
   rngNonSafety = CreateObject<UniformRandomVariable> ();
@@ -319,12 +326,13 @@ MultipleChannelExperiment::CreateWaveNodes (void)
 bool
 MultipleChannelExperiment::Receive (Ptr<NetDevice> dev, Ptr<const Packet> pkt, uint16_t mode, const Address &sender)
 {
+  NS_LOG_FUNCTION (this << dev << pkt << mode << sender);
   StatsTag tag;
   bool result;
   result = pkt->FindFirstMatchingByteTag (tag);
   if (!result)
     {
-      NS_FATAL_ERROR ("the packet here should has a stats tag");
+      NS_FATAL_ERROR ("the packet here shall have a stats tag");
     }
   Time now = Now ();
   Time sendTime = tag.GetSendTime ();
@@ -333,9 +341,11 @@ MultipleChannelExperiment::Receive (Ptr<NetDevice> dev, Ptr<const Packet> pkt, u
 
   if (mode == WSMP_PROT_NUMBER)
     {
+	  // since safety packets are broadcasted, neighbor nodes will receive it,
+	  // here we only consider the first received broadcasted packet, the same packet will not be used for stats
       if (broadcastPackets.count (packetId))
         {
-          return true;                // this packet will not used for stats
+          return true;
         }
       broadcastPackets.insert (packetId);
       receiveSafety++;
@@ -347,6 +357,7 @@ MultipleChannelExperiment::Receive (Ptr<NetDevice> dev, Ptr<const Packet> pkt, u
       timeNonSafety += (now - sendTime).GetMicroSeconds ();
     }
 
+  if (createTraceFile)
   outfile << "Time = " << std::dec << now.GetMicroSeconds () << "us, receive packet: "
           << " protocol = 0x" << std::hex << mode << std::dec
           << " id = " << packetId << " sendTime = " << sendTime.GetMicroSeconds ()
@@ -387,14 +398,14 @@ MultipleChannelExperiment::SendIpPackets (Ptr<WaveNetDevice> sender)
 
   bool result = false;
   result = sender->Send (packet, dest, IPv4_PROT_NUMBER);
-  if (result)
+  if (createTraceFile)
     {
-      outfile << "Time = " << now.GetMicroSeconds () << "us, unicast IP packet:  ID = " << tag.GetPacketId ()
-              << ", dest = " << dest << std::endl;
-    }
-  else
-    {
-      outfile << "unicast IP packet fail" << std::endl;
+      if (result)
+        outfile << "Time = " << now.GetMicroSeconds () << "us,"
+        		  << " unicast IP packet:  ID = " << tag.GetPacketId ()
+                  << ", dest = " << dest << std::endl;
+      else
+        outfile << "unicast IP packet fail" << std::endl;
     }
 
   Ptr<ChannelCoordinator> coordinator = sender->GetChannelCoordinator ();
@@ -434,13 +445,12 @@ MultipleChannelExperiment::SendWsmpPackets (Ptr<WaveNetDevice> sender, uint32_t 
   TxInfo info = TxInfo (channelNumber);
   bool result = false;
   result = sender->SendX (packet, dest, WSMP_PROT_NUMBER, info);
-  if (result)
+  if (createTraceFile)
     {
-      outfile << "Time = " << now.GetMicroSeconds () << "us, broadcast WSMP packet: ID = " << tag.GetPacketId () << std::endl;
-    }
-  else
-    {
-      outfile << "broadcast WSMP packet fail" << std::endl;
+     if (result)
+       outfile << "Time = " << now.GetMicroSeconds () << "us, broadcast WSMP packet: ID = " << tag.GetPacketId () << std::endl;
+     else
+       outfile << "broadcast WSMP packet fail" << std::endl;
     }
 
   Ptr<ChannelCoordinator> coordinator = sender->GetChannelCoordinator ();
@@ -469,8 +479,9 @@ MultipleChannelExperiment::SendWsmpPackets (Ptr<WaveNetDevice> sender, uint32_t 
     }
 }
 void
-MultipleChannelExperiment::ConfigurationA ()
+MultipleChannelExperiment::ConfigurationA (void)
 {
+  NS_LOG_FUNCTION (this);
   NetDeviceContainer::Iterator i;
   for (i = devices.Begin (); i != devices.End (); ++i)
     {
@@ -493,8 +504,9 @@ MultipleChannelExperiment::ConfigurationA ()
     }
 }
 void
-MultipleChannelExperiment::ConfigurationB ()
+MultipleChannelExperiment::ConfigurationB (void)
 {
+  NS_LOG_FUNCTION (this);
   NetDeviceContainer::Iterator i;
   for (i = devices.Begin (); i != devices.End (); ++i)
     {
@@ -518,8 +530,9 @@ MultipleChannelExperiment::ConfigurationB ()
     }
 }
 void
-MultipleChannelExperiment::ConfigurationC ()
+MultipleChannelExperiment::ConfigurationC (void)
 {
+  NS_LOG_FUNCTION (this);
   NetDeviceContainer::Iterator i;
   for (i = devices.Begin (); i != devices.End (); ++i)
     {
@@ -560,8 +573,9 @@ MultipleChannelExperiment::ConfigurationC ()
     }
 }
 void
-MultipleChannelExperiment::ConfiguartionD ()
+MultipleChannelExperiment::ConfiguartionD (void)
 {
+  NS_LOG_FUNCTION (this);
   NetDeviceContainer::Iterator i;
   for (i = devices.Begin (); i != devices.End (); ++i)
     {
@@ -602,63 +616,68 @@ MultipleChannelExperiment::ConfiguartionD ()
     }
 }
 void
-MultipleChannelExperiment::Run ()
+MultipleChannelExperiment::Run (void)
 {
   NS_LOG_FUNCTION (this);
   NS_LOG_DEBUG ("simulation configuration arguments: ");
 
   {
     NS_LOG_UNCOND ("configuration A:");
-    SeedManager::SetSeed (7);
-    outfile.open ("config-a");
+    if (createTraceFile)
+      outfile.open ("config-a");
     CreateWaveNodes ();
     ConfigurationA ();
     Simulator::Stop (Seconds (simulationTime));
     Simulator::Run ();
     Simulator::Destroy ();
     Stats ();
-    outfile.close ();
+    if (createTraceFile)
+      outfile.close ();
   }
   {
     NS_LOG_UNCOND ("configuration B:");
-    SeedManager::SetSeed (7);
-    outfile.open ("config-b");
+    if (createTraceFile)
+      outfile.open ("config-b");
     CreateWaveNodes ();
     ConfigurationB ();
     Simulator::Stop (Seconds (simulationTime));
     Simulator::Run ();
     Simulator::Destroy ();
     Stats ();
-    outfile.close ();
+    if (createTraceFile)
+      outfile.close ();
   }
   {
     NS_LOG_UNCOND ("configuration C:");
-    SeedManager::SetSeed (7);
-    outfile.open ("config-c");
+    if (createTraceFile)
+      outfile.open ("config-c");
     CreateWaveNodes ();
     ConfigurationC ();
     Simulator::Stop (Seconds (simulationTime));
     Simulator::Run ();
     Simulator::Destroy ();
     Stats ();
-    outfile.close ();
+    if (createTraceFile)
+      outfile.close ();
   }
   {
     NS_LOG_UNCOND ("configuration D:");
-    SeedManager::SetSeed (7);
-    outfile.open ("config-d");
+    if (createTraceFile)
+      outfile.open ("config-d");
     CreateWaveNodes ();
     ConfiguartionD ();
     Simulator::Stop (Seconds (simulationTime));
     Simulator::Run ();
     Simulator::Destroy ();
     Stats ();
-    outfile.close ();
+    if (createTraceFile)
+      outfile.close ();
   }
 }
 void
 MultipleChannelExperiment::Stats (void)
 {
+  NS_LOG_FUNCTION (this);
   // first show stats information
   NS_LOG_UNCOND (" safety packet: ");
   NS_LOG_UNCOND ("  sends = " << safetyPacketID);

@@ -356,12 +356,35 @@ Usage as follows:
     devices = waveHelper.Install (wifiPhy, waveMac, nodes);
 APIs
 ====
+The 802.11p device can send data packets which is the same as normal wifi device
+1. already create a Node object and WifiNetdevice 802.11p object
+2(a). if we want to send UDP packets over 802.11p device, we can create socket
 
-The 802.11p device can allow the upper layer to send different information
+::
+  TypeId tid = TypeId::LookupByName ("ns3::UdpSocketFactory");
+  Ptr<Socket> recvSink = Socket::CreateSocket (c.Get (0), tid);
+  InetSocketAddress local = InetSocketAddress (Ipv4Address::GetAny (), 80);
+  recvSink->Bind (local);
+  recvSink->SetRecvCallback (MakeCallback (&ReceivePacket));
+  
+  Ptr<Socket> source = Socket::CreateSocket (c.Get (1), tid);
+  InetSocketAddress remote = InetSocketAddress (Ipv4Address ("255.255.255.255"), 80);
+  source->SetAllowBroadcast (true);
+  source->Connect (remote);
+  socket->Send (Create<Packet> (pktSize));
+  
+2(b). if we want to send packets directly or create new protocol over 802.11p device
+
+:: 
+Ptr<NetDevice> device;
+device->SetReceiveCallback (MakeCallback (&ReceivePacket));
+device->Send (packet, dest, protocolNumber);
+
+The 802.11p device can allow the upper layer to send management information
 over Vendor Specific Action management frames by using different
 OrganizationIdentifier fields to identify differences.
 
-1. already create a Node object and WifiNetdevice object
+1. already create a Node object and WifiNetdevice 802.11p device object
 2. define an OrganizationIdentifier
 
 ::
@@ -388,7 +411,60 @@ OrganizationIdentifier fields to identify differences.
 
 6. then registered callbacks in other devices will be called.
 
-The wave device 
+The wave device can support send data packets by inherited method 
+NetDevice::Send. But before sending,we must assign channel access for devices,
+and register a tx profile to indicate tx parameters.
+
+1. create a Node object and WaveNetdevice wave device object
+2. assigne channel access for sender
+
+::
+  const SchInfo schInfo = SchInfo (CCH, false, 0xff);
+  Simulator::Schedule (Seconds (1.0),&WaveNetDevice::StartSch,sender,schInfo);
+   
+   assigne channel access for receiver
+   
+ ::
+  const SchInfo schInfo = SchInfo (CCH, false, 0xff);
+  Simulator::Schedule (Seconds (1.0),&WaveNetDevice::StartSch,receiver,schInfo);
+  
+3. register a tx profile
+
+::
+  const TxProfile txProfile = TxProfile (SCH1);
+  Simulator::Schedule (Seconds (2.0),&WaveNetDevice::RegisterTxProfile,
+                       sender,txProfile);
+4. send packets
+
+::
+  Simulator::Schedule (Seconds (3.0),&WaveNetDevice::Send, sender,
+                       packet, dest, ipv4_protocol);
+                       
+The wave device can also support send data packets by new 
+method WaveNetDevice::SendX. And before sending, we must 
+assign channel access for devices.
+1. create a Node object and WaveNetdevice wave device object
+2. assigne channel access for sender
+
+::
+  const SchInfo schInfo = SchInfo (CCH, false, 0xff);
+  Simulator::Schedule (Seconds (1.0),&WaveNetDevice::StartSch,sender,schInfo);
+   
+   assigne channel access for receiver
+   
+ ::
+  const SchInfo schInfo = SchInfo (CCH, false, 0xff);
+  Simulator::Schedule (Seconds (1.0),&WaveNetDevice::StartSch,receiver,schInfo);
+  
+3. send data packets
+
+::
+  const TxInfo txInfo = TxInfo (CCH);
+  Ptr<Packet> packet = Create<Packet> (100);
+  const Address dest = receiver->GetAddress ();
+  Simulator::Schedule (Seconds (2.0),&WaveNetDevice::SendX, sender,
+                       packet, dest, WSMP_PROT_NUMBER, txInfo);
+ 
 
 Attributes
 ==========
