@@ -123,84 +123,48 @@ public:
   Time GetGuardInterval (void) const;
 
   /**
-   * \returns whether current time is in SCH interval
-   */
-  bool IsSchInterval (void) const;
-  /**
    * \param duration the future time after duration
    * \returns whether future time is in SCH interval
    */
-  bool IsSchInterval (Time duration) const;
-  /**
-   * \returns whether current time is in CCH interval
-   */
-  bool IsCchInterval (void) const;
+  bool IsSchInterval (Time duration = Seconds (0.0)) const;
   /**
    * \param duration the future time after duration
    * \returns whether future time is in CCH interval
    */
-  bool IsCchInterval (Time duration) const;
-  /**
-   * \returns whether current time is in Guard interval
-   * If user want to get whether current guard interval
-   * is in CCH guard interval or SCH guard interval, then
-   * call IsSchInterval or IsCchInterval
-   */
-  bool IsGuardInterval (void) const;
+  bool IsCchInterval (Time duration = Seconds (0.0)) const;
   /**
    * \param duration the future time after duration
    * \returns whether future time is in Guard interval
    */
-  bool IsGuardInterval (Time duration) const;
-  /**
-   * \returns whether current time is in SyncToleranc time
-   */
-  bool IsInSyncTolerance (void) const;
+  bool IsGuardInterval (Time duration = Seconds (0.0)) const;
   /**
    * \param duration the future time after duration
    * \returns whether future time is in SyncToleranc time
    */
-  bool IsInSyncTolerance (Time duration) const;
-  /**
-   * \returns whether current time is in MaxSwitchTime time
-   *
-   * although real channel switch time of PHY is less than MaxSwitchTime;
-   * this method will return true if the time is in MaxSwitchTime.
-   */
-  bool IsInMaxSwitchTime (void) const;
+  bool IsInSyncTolerance (Time duration = Seconds (0.0)) const;
   /**
    * \param duration the future time after duration
    * \returns whether future time is in MaxSwitchTime time
    */
-  bool IsInMaxSwitchTime (Time duration) const;
-
+  bool IsInMaxSwitchTime (Time duration = Seconds (0.0)) const;
   /**
+   * \param duration the future time after duration
    * \returns the duration time to next SCH interval
    * If current time is already in SCH interval, return 0;
    */
-  Time NeedTimeToSchInterval (void) const;
-  Time NeedTimeToSchInterval (Time duration) const;
+  Time NeedTimeToSchInterval (Time duration = Seconds (0.0)) const;
   /**
+   * \param duration the future time after duration
    * \returns the duration time to next SCH interval
    * If current time is already in CCH interval, return 0;
    */
-  Time NeedTimeToCchInterval (void) const;
-  Time NeedTimeToCchInterval (Time duration) const;
+  Time NeedTimeToCchInterval (Time duration = Seconds (0.0)) const;
   /**
+   * \param duration the future time after duration
    * \returns the duration time to next Guard interval
    * If current time is already in Guard interval, return 0;
    */
-  Time NeedTimeToGuardInterval (void) const;
-  Time NeedTimeToGuardInterval (Time duration) const;
-
-  /**
-   *  \return the time in a Sync Interval of current time
-   *  for example:
-   *  SyncInterval = 100ms;
-   *  Now = 5s20ms;
-   *  then GetIntervalTime () = 20ms.
-   */
-  Time GetIntervalTime (void) const;
+  Time NeedTimeToGuardInterval (Time duration = Seconds (0.0)) const;
   /**
    * \param duration the future time after duration
    * \return the time in a Sync Interval of future time
@@ -210,7 +174,7 @@ public:
    *  duration = 50ms;
    *  then GetIntervalTime (duration) = 70ms.
    */
-  Time GetIntervalTime (Time duration) const;
+  Time GetIntervalTime (Time duration = Seconds (0.0)) const;
 
   /**
    * Why need start and stop?

@@ -182,12 +182,6 @@ ChannelCoordinator::GetCchSlot (void) const
   NS_LOG_FUNCTION (this);
   return m_cchInterval - (m_syncTolerance + m_maxSwitchTime);
 }
- bool
-ChannelCoordinator::IsSchInterval (void) const
-{
-  NS_LOG_FUNCTION (this);
- return IsSchInterval (Seconds (0));
-}
 bool
 ChannelCoordinator::IsCchInterval (Time duration) const
 {
@@ -195,23 +189,11 @@ ChannelCoordinator::IsCchInterval (Time duration) const
   Time future = GetIntervalTime (duration);
   return (future < m_cchInterval);
 }
- bool
-ChannelCoordinator::IsCchInterval (void) const
-{
-  NS_LOG_FUNCTION (this);
-  return IsCchInterval (Seconds (0));
-}
 bool
 ChannelCoordinator::IsSchInterval (Time duration) const
 {
   NS_LOG_FUNCTION (this << duration);
   return !IsCchInterval (duration);
-}
- Time
-ChannelCoordinator::NeedTimeToSchInterval (void) const
-{
-  NS_LOG_FUNCTION (this);
-  return NeedTimeToSchInterval (Seconds (0));
 }
 Time
 ChannelCoordinator::NeedTimeToSchInterval (Time duration) const
@@ -223,12 +205,6 @@ ChannelCoordinator::NeedTimeToSchInterval (Time duration) const
     }
   return GetCchInterval () - GetIntervalTime (duration);
 }
- Time
-ChannelCoordinator::NeedTimeToCchInterval (void) const
-{
-  NS_LOG_FUNCTION (this);
-  return NeedTimeToCchInterval (Seconds (0));
-}
 Time
 ChannelCoordinator::NeedTimeToCchInterval (Time duration) const
 {
@@ -238,12 +214,6 @@ ChannelCoordinator::NeedTimeToCchInterval (Time duration) const
       return Time (0);
     }
   return GetSyncInterval () - GetIntervalTime (duration);
-}
- Time
-ChannelCoordinator::NeedTimeToGuardInterval (void) const
-{
-  NS_LOG_FUNCTION (this);
-  return NeedTimeToGuardInterval (Seconds (0));
 }
 Time
 ChannelCoordinator::NeedTimeToGuardInterval (Time duration) const
@@ -255,12 +225,6 @@ ChannelCoordinator::NeedTimeToGuardInterval (Time duration) const
     }
 
   return (GetSyncInterval () - GetIntervalTime (duration));
-}
- bool
-ChannelCoordinator::IsInSyncTolerance (void) const
-{
-  NS_LOG_FUNCTION (this);
-  return IsInSyncTolerance (Seconds (0));
 }
 bool
 ChannelCoordinator::IsInSyncTolerance (Time duration) const
@@ -282,12 +246,6 @@ ChannelCoordinator::IsInSyncTolerance (Time duration) const
   return false;
 }
 bool
-ChannelCoordinator::IsInMaxSwitchTime (void) const
-{
-  NS_LOG_FUNCTION (this);
-  return IsInMaxSwitchTime (Seconds (0));
-}
-bool
 ChannelCoordinator::IsInMaxSwitchTime (Time duration) const
 {
   NS_LOG_FUNCTION (this << duration);
@@ -302,12 +260,6 @@ ChannelCoordinator::IsInMaxSwitchTime (Time duration) const
     }
   return false;
 }
- bool
-ChannelCoordinator::IsGuardInterval (void) const
-{
-  NS_LOG_FUNCTION (this);
-  return IsGuardInterval (Seconds (0));
-}
 bool
 ChannelCoordinator::IsGuardInterval (Time duration) const
 {
@@ -316,12 +268,6 @@ ChannelCoordinator::IsGuardInterval (Time duration) const
   // interval is either in CchInterval or SchInterval
   Time interval = future < m_cchInterval ? future : future - m_cchInterval;
   return interval < GetGuardInterval ();
-}
-Time
-ChannelCoordinator::GetIntervalTime (void) const
-{
-  NS_LOG_FUNCTION (this);
-  return GetIntervalTime (Seconds (0));
 }
 Time
 ChannelCoordinator::GetIntervalTime (Time duration) const
